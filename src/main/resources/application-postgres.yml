@@ -1,0 +1,11 @@
+# Perfil de producao - PostgreSQL
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/adm_soler
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
