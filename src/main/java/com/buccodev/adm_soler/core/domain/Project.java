@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.BadRequestException;
+import com.buccodev.adm_soler.application.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -61,6 +61,7 @@ public class Project {
         if (equipments != null) {
             project.equipments.addAll(equipments);
         }
+        project.validateDateRange(startDate, endDate);
         return project;
     }
 
@@ -126,10 +127,12 @@ public class Project {
 
     public void setStartDate(LocalDateTime startDate) {
         this.startDate = validateStartDate(startDate);
+        validateDateRange(this.startDate, this.endDate);
     }
 
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = validateEndDate(endDate);
+        validateDateRange(this.startDate, this.endDate);
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

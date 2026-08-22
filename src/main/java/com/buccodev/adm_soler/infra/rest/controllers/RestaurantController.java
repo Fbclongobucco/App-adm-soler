@@ -1,0 +1,48 @@
+package com.buccodev.adm_soler.infra.rest.controllers;
+
+import com.buccodev.adm_soler.application.dto.restaurant.RestaurantRequest;
+import com.buccodev.adm_soler.application.dto.restaurant.RestaurantResponse;
+import com.buccodev.adm_soler.application.usecase.RestaurantUseCase;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/restaurants")
+public class RestaurantController {
+
+    private final RestaurantUseCase restaurantUseCase;
+
+    public RestaurantController(RestaurantUseCase restaurantUseCase) {
+        this.restaurantUseCase = restaurantUseCase;
+    }
+
+    @PostMapping
+    public ResponseEntity<RestaurantResponse> create(@RequestBody RestaurantRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(restaurantUseCase.create(request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RestaurantResponse> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(restaurantUseCase.findById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<RestaurantResponse>> findAll() {
+        return ResponseEntity.ok(restaurantUseCase.findAll());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<RestaurantResponse> update(@PathVariable UUID id, @RequestBody RestaurantRequest request) {
+        return ResponseEntity.ok(restaurantUseCase.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        restaurantUseCase.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}

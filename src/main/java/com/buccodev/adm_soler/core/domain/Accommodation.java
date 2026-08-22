@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.BadRequestException;
+import com.buccodev.adm_soler.application.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -48,6 +48,7 @@ public class Accommodation {
         if (employees != null) {
             accommodation.employees.addAll(employees);
         }
+        accommodation.validateDateRange(startDate, endDate);
         return accommodation;
     }
 
@@ -97,14 +98,19 @@ public class Accommodation {
 
     public void setCapacity(Integer capacity) {
         this.capacity = validateCapacity(capacity);
+        if (employees.size() > this.capacity) {
+            throw new BadRequestException("capacity cannot be less than current number of employees");
+        }
     }
 
     public void setStartDate(LocalDateTime startDate) {
         this.startDate = validateStartDate(startDate);
+        validateDateRange(this.startDate, this.endDate);
     }
 
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = validateEndDate(endDate);
+        validateDateRange(this.startDate, this.endDate);
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
@@ -113,11 +119,17 @@ public class Accommodation {
 
     public void addEmployee(Employee employee) {
         Objects.requireNonNull(employee, "employee is required");
+        if (capacity != null && employees.size() >= capacity) {
+            throw new BadRequestException("accommodation capacity exceeded: " + capacity);
+        }
         this.employees.add(employee);
     }
 
     public void addAllEmployees(Collection<Employee> employees) {
         Objects.requireNonNull(employees, "employees is required");
+        if (capacity != null && this.employees.size() + employees.size() > capacity) {
+            throw new BadRequestException("accommodation capacity exceeded: " + capacity);
+        }
         this.employees.addAll(employees);
     }
 

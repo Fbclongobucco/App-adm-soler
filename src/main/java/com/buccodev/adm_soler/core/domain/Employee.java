@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.BadRequestException;
+import com.buccodev.adm_soler.application.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -27,7 +27,7 @@ public class Employee {
         this.name = validateName(name);
         this.email = validateEmail(email);
         this.phone = validatePhone(phone);
-        this.address = address;
+        this.address = Objects.requireNonNull(address, "address is required");
         this.role = validateRole(role);
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
         this.updatedAt = updatedAt;
@@ -88,7 +88,7 @@ public class Employee {
     }
 
     public void setAddress(Address address) {
-        this.address = address;
+        this.address = Objects.requireNonNull(address, "address is required");
     }
 
     public void setRole(String role) {

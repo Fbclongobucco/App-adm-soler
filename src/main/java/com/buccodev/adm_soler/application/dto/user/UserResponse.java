@@ -14,4 +14,15 @@ public record UserResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
+    public static UserResponse fromDomain(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
+    }
 }

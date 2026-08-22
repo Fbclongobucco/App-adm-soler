@@ -1,7 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.BadRequestException;
-import com.buccodev.adm_soler.core.exception.ValidationException;
+import com.buccodev.adm_soler.application.exception.BadRequestException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,7 +31,7 @@ public class Restaurant {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public Restaurant(UUID id, String name, String email, String phone, String cnpj,
+    private Restaurant(UUID id, String name, String email, String phone, String cnpj,
                       Project project, Boolean isBilled, BigDecimal lunchPrice,
                       BigDecimal dinnerPrice, BigDecimal total, BigDecimal additionalValues,
                       BigDecimal valuePerEmployee, Integer days, Address address,
@@ -77,6 +76,8 @@ public class Restaurant {
         if (employees != null) {
             restaurant.employees.addAll(employees);
         }
+        restaurant.calculateTotal();
+        restaurant.calculateValuePerEmployee();
         return restaurant;
     }
 
@@ -175,24 +176,25 @@ public class Restaurant {
     public void setLunchPrice(BigDecimal lunchPrice) {
         this.lunchPrice = validatePrice(lunchPrice, "lunchPrice");
         calculateTotal();
+        calculateValuePerEmployee();
     }
 
     public void setDinnerPrice(BigDecimal dinnerPrice) {
         this.dinnerPrice = validatePrice(dinnerPrice, "dinnerPrice");
         calculateTotal();
+        calculateValuePerEmployee();
     }
 
     public void setAdditionalValues(BigDecimal additionalValues) {
         this.additionalValues = validatePrice(additionalValues, "additionalValues");
         calculateTotal();
-    }
-
-    public void setValuePerEmployee(BigDecimal valuePerEmployee) {
-        this.valuePerEmployee = valuePerEmployee;
+        calculateValuePerEmployee();
     }
 
     public void setDays(Integer days) {
         this.days = validateDays(days);
+        calculateTotal();
+        calculateValuePerEmployee();
     }
 
     public void setAddress(Address address) {
@@ -206,15 +208,18 @@ public class Restaurant {
     public void addEmployee(Employee employee) {
         Objects.requireNonNull(employee, "employee is required");
         this.employees.add(employee);
+        calculateValuePerEmployee();
     }
 
     public void addAllEmployees(Collection<Employee> employees) {
         Objects.requireNonNull(employees, "employees is required");
         this.employees.addAll(employees);
+        calculateValuePerEmployee();
     }
 
     public void removeEmployee(Employee employee) {
         this.employees.remove(employee);
+        calculateValuePerEmployee();
     }
 
     public void calculateTotal() {

@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.BadRequestException;
+import com.buccodev.adm_soler.application.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;

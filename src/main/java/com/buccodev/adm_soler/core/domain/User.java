@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.BadRequestException;
+import com.buccodev.adm_soler.application.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -30,7 +30,7 @@ public class User {
         this.id = Objects.requireNonNull(id, "id is required");
         this.name = validateName(name);
         this.email = validateEmail(email);
-        this.password = Objects.requireNonNull(password, "password is required");
+        this.password = validatePassword(password);
         this.phone = validatePhone(phone);
         this.role = Objects.requireNonNull(role, "role is required");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
@@ -88,7 +88,7 @@ public class User {
     }
 
     public void setPassword(String password) {
-        this.password = Objects.requireNonNull(password, "password is required");
+        this.password = validatePassword(password);
     }
 
     public void setPhone(String phone) {
@@ -116,6 +116,17 @@ public class User {
             throw new BadRequestException("invalid email format");
         }
         return email;
+    }
+
+    private String validatePassword(String password) {
+        Objects.requireNonNull(password, "password is required");
+        if (password.isBlank()) {
+            throw new BadRequestException("password cannot be blank");
+        }
+        if (password.length() < 6) {
+            throw new BadRequestException("password must be at least 6 characters");
+        }
+        return password;
     }
 
     private String validatePhone(String phone) {
