@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.AddressJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.AddressJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.AddressMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class AddressRepositoryAdapter implements AddressRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public Address save(Address address) {
         AddressJpa jpa = AddressMapper.toJpa(address);
@@ -31,6 +33,7 @@ public class AddressRepositoryAdapter implements AddressRepository {
         return AddressMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Address> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class AddressRepositoryAdapter implements AddressRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Address> findAll() {
         return jpaRepository.findAll().stream().map(AddressMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);

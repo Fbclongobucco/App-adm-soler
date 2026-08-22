@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.EmployeeJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.EmployeeJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.EmployeeMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public Employee save(Employee employee) {
         EmployeeJpa jpa = EmployeeMapper.toJpa(employee);
@@ -31,6 +33,7 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
         return EmployeeMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Employee> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Employee> findAll() {
         return jpaRepository.findAll().stream().map(EmployeeMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);

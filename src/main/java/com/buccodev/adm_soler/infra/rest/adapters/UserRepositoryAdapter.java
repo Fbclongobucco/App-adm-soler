@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.UserJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.UserJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.UserMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class UserRepositoryAdapter implements UserRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public User save(User user) {
         UserJpa jpa = UserMapper.toJpa(user);
@@ -31,6 +33,7 @@ public class UserRepositoryAdapter implements UserRepository {
         return UserMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<User> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class UserRepositoryAdapter implements UserRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<User> findAll() {
         return jpaRepository.findAll().stream().map(UserMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);

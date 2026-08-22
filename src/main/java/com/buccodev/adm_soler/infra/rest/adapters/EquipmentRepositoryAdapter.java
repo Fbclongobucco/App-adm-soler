@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.EquipmentJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.EquipmentJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.EquipmentMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class EquipmentRepositoryAdapter implements EquipmentRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public Equipment save(Equipment equipment) {
         EquipmentJpa jpa = EquipmentMapper.toJpa(equipment);
@@ -31,6 +33,7 @@ public class EquipmentRepositoryAdapter implements EquipmentRepository {
         return EquipmentMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Equipment> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class EquipmentRepositoryAdapter implements EquipmentRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Equipment> findAll() {
         return jpaRepository.findAll().stream().map(EquipmentMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);

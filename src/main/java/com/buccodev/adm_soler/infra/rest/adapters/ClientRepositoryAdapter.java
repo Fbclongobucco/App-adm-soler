@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.ClientJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.ClientJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.ClientMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class ClientRepositoryAdapter implements ClientRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public Client save(Client client) {
         ClientJpa jpa = ClientMapper.toJpa(client);
@@ -31,6 +33,7 @@ public class ClientRepositoryAdapter implements ClientRepository {
         return ClientMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Client> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class ClientRepositoryAdapter implements ClientRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Client> findAll() {
         return jpaRepository.findAll().stream().map(ClientMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);

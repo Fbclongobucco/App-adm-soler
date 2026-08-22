@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.RestaurantJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.RestaurantJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.RestaurantMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public Restaurant save(Restaurant restaurant) {
         RestaurantJpa jpa = RestaurantMapper.toJpa(restaurant);
@@ -31,6 +33,7 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
         return RestaurantMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Restaurant> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Restaurant> findAll() {
         return jpaRepository.findAll().stream().map(RestaurantMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);

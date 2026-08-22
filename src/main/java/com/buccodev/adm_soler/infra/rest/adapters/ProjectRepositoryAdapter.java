@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.ProjectJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.ProjectJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.ProjectMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public Project save(Project project) {
         ProjectJpa jpa = ProjectMapper.toJpa(project);
@@ -31,6 +33,7 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
         return ProjectMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Project> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Project> findAll() {
         return jpaRepository.findAll().stream().map(ProjectMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);

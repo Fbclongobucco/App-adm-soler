@@ -6,6 +6,7 @@ import com.buccodev.adm_soler.infra.rest.entities.AccommodationJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.AccommodationJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.AccommodationMapper;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,7 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
         this.jpaRepository = jpaRepository;
     }
 
+    @Transactional
     @Override
     public Accommodation save(Accommodation accommodation) {
         AccommodationJpa jpa = AccommodationMapper.toJpa(accommodation);
@@ -31,6 +33,7 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
         return AccommodationMapper.toDomain(saved);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Accommodation> findById(UUID id) {
         return jpaRepository.findById(id).map(jpa -> {
@@ -39,11 +42,13 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
         });
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Accommodation> findAll() {
         return jpaRepository.findAll().stream().map(AccommodationMapper::toDomain).toList();
     }
 
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
