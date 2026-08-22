@@ -4,10 +4,8 @@ spring:
     name: adm-soler
   profiles:
     active: h2
-
-# JPA / Hibernate
-jpa:
-  open-in-view: false
+  jpa:
+    open-in-view: false
 
 # Server
 server:
