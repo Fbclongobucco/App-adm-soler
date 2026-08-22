@@ -23,6 +23,9 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
     @Override
     public Employee save(Employee employee) {
         EmployeeJpa jpa = EmployeeMapper.toJpa(employee);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         EmployeeJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return EmployeeMapper.toDomain(saved);

@@ -23,6 +23,9 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     @Override
     public Project save(Project project) {
         ProjectJpa jpa = ProjectMapper.toJpa(project);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         ProjectJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return ProjectMapper.toDomain(saved);

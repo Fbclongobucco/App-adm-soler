@@ -23,6 +23,9 @@ public class AddressRepositoryAdapter implements AddressRepository {
     @Override
     public Address save(Address address) {
         AddressJpa jpa = AddressMapper.toJpa(address);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         AddressJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return AddressMapper.toDomain(saved);

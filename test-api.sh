@@ -34,7 +34,7 @@ USER_RESPONSE=$(curl -s -X POST "$BASE_URL/users" \
     "name": "João Silva",
     "email": "joao@email.com",
     "password": "123456",
-    "phone": "(11) 99999-0000"
+    "phone": "11999990000"
   }')
 echo "$USER_RESPONSE"
 USER_ID=$(echo $USER_RESPONSE | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
@@ -59,7 +59,7 @@ CLIENT_RESPONSE=$(curl -s -X POST "$BASE_URL/clients" \
   -d "{
     \"name\": \"Empresa ABC Ltda\",
     \"email\": \"contato@abc.com\",
-    \"phone\": \"(11) 3333-4444\",
+    \"phone\": \"1133334444\",
     \"cnpj\": \"12.345.678/0001-90\",
     \"addressId\": \"$ADDRESS_ID\"
   }")
@@ -74,7 +74,7 @@ EMPLOYEE_RESPONSE=$(curl -s -X POST "$BASE_URL/employees" \
   -d "{
     \"name\": \"Maria Santos\",
     \"email\": \"maria@email.com\",
-    \"phone\": \"(11) 98888-7777\",
+    \"phone\": \"11988887777\",
     \"addressId\": \"$ADDRESS_ID\",
     \"role\": \"Desenvolvedora\"
   }")
@@ -104,7 +104,7 @@ RESTAURANT_RESPONSE=$(curl -s -X POST "$BASE_URL/restaurants" \
   -d "{
     \"name\": \"Restaurante Sabor da Terra\",
     \"email\": \"contato@sabordaterra.com\",
-    \"phone\": \"(11) 5555-6666\",
+    \"phone\": \"1155556666\",
     \"cnpj\": \"98.765.432/0001-10\",
     \"projectId\": \"$PROJECT_ID\",
     \"isBilled\": true,

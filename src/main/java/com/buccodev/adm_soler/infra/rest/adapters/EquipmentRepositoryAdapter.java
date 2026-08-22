@@ -23,6 +23,9 @@ public class EquipmentRepositoryAdapter implements EquipmentRepository {
     @Override
     public Equipment save(Equipment equipment) {
         EquipmentJpa jpa = EquipmentMapper.toJpa(equipment);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         EquipmentJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return EquipmentMapper.toDomain(saved);

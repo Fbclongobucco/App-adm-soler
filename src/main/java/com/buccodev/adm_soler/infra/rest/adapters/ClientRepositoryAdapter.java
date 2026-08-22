@@ -23,6 +23,9 @@ public class ClientRepositoryAdapter implements ClientRepository {
     @Override
     public Client save(Client client) {
         ClientJpa jpa = ClientMapper.toJpa(client);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         ClientJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return ClientMapper.toDomain(saved);

@@ -23,6 +23,9 @@ public class UserRepositoryAdapter implements UserRepository {
     @Override
     public User save(User user) {
         UserJpa jpa = UserMapper.toJpa(user);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         UserJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return UserMapper.toDomain(saved);

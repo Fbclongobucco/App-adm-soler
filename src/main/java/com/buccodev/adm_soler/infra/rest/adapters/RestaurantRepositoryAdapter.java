@@ -23,6 +23,9 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
     @Override
     public Restaurant save(Restaurant restaurant) {
         RestaurantJpa jpa = RestaurantMapper.toJpa(restaurant);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         RestaurantJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return RestaurantMapper.toDomain(saved);

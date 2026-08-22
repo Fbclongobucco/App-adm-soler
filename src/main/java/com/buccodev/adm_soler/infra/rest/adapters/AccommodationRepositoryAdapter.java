@@ -23,6 +23,9 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
     @Override
     public Accommodation save(Accommodation accommodation) {
         AccommodationJpa jpa = AccommodationMapper.toJpa(accommodation);
+        if (jpaRepository.existsById(jpa.getId())) {
+            jpa.markAsExisting();
+        }
         AccommodationJpa saved = jpaRepository.save(jpa);
         saved.markAsExisting();
         return AccommodationMapper.toDomain(saved);
