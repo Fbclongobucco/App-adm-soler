@@ -1,16 +1,16 @@
 package com.buccodev.adm_soler.infra.rest.entities;
 
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-public class UserJpa {
+public class UserJpa implements Persistable<UUID> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
@@ -31,6 +31,9 @@ public class UserJpa {
 
     private LocalDateTime updatedAt;
 
+    @Transient
+    private boolean newEntity = true;
+
     public UserJpa() {
     }
 
@@ -46,6 +49,16 @@ public class UserJpa {
         this.updatedAt = updatedAt;
     }
 
+    @Override
+    public boolean isNew() {
+        return newEntity;
+    }
+
+    public void markAsExisting() {
+        this.newEntity = false;
+    }
+
+    @Override
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

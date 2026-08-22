@@ -22,13 +22,18 @@ public class UserRepositoryAdapter implements UserRepository {
 
     @Override
     public User save(User user) {
-        UserJpa saved = jpaRepository.save(UserMapper.toJpa(user));
+        UserJpa jpa = UserMapper.toJpa(user);
+        UserJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return UserMapper.toDomain(saved);
     }
 
     @Override
     public Optional<User> findById(UUID id) {
-        return jpaRepository.findById(id).map(UserMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return UserMapper.toDomain(jpa);
+        });
     }
 
     @Override

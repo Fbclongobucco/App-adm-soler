@@ -22,13 +22,18 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
 
     @Override
     public Employee save(Employee employee) {
-        EmployeeJpa saved = jpaRepository.save(EmployeeMapper.toJpa(employee));
+        EmployeeJpa jpa = EmployeeMapper.toJpa(employee);
+        EmployeeJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return EmployeeMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Employee> findById(UUID id) {
-        return jpaRepository.findById(id).map(EmployeeMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return EmployeeMapper.toDomain(jpa);
+        });
     }
 
     @Override

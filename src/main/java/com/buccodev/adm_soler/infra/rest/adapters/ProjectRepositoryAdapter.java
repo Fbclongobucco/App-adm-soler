@@ -22,13 +22,18 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
 
     @Override
     public Project save(Project project) {
-        ProjectJpa saved = jpaRepository.save(ProjectMapper.toJpa(project));
+        ProjectJpa jpa = ProjectMapper.toJpa(project);
+        ProjectJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return ProjectMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Project> findById(UUID id) {
-        return jpaRepository.findById(id).map(ProjectMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return ProjectMapper.toDomain(jpa);
+        });
     }
 
     @Override

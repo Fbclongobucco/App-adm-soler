@@ -22,13 +22,18 @@ public class EquipmentRepositoryAdapter implements EquipmentRepository {
 
     @Override
     public Equipment save(Equipment equipment) {
-        EquipmentJpa saved = jpaRepository.save(EquipmentMapper.toJpa(equipment));
+        EquipmentJpa jpa = EquipmentMapper.toJpa(equipment);
+        EquipmentJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return EquipmentMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Equipment> findById(UUID id) {
-        return jpaRepository.findById(id).map(EquipmentMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return EquipmentMapper.toDomain(jpa);
+        });
     }
 
     @Override

@@ -22,13 +22,18 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
 
     @Override
     public Accommodation save(Accommodation accommodation) {
-        AccommodationJpa saved = jpaRepository.save(AccommodationMapper.toJpa(accommodation));
+        AccommodationJpa jpa = AccommodationMapper.toJpa(accommodation);
+        AccommodationJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return AccommodationMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Accommodation> findById(UUID id) {
-        return jpaRepository.findById(id).map(AccommodationMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return AccommodationMapper.toDomain(jpa);
+        });
     }
 
     @Override

@@ -22,13 +22,18 @@ public class ClientRepositoryAdapter implements ClientRepository {
 
     @Override
     public Client save(Client client) {
-        ClientJpa saved = jpaRepository.save(ClientMapper.toJpa(client));
+        ClientJpa jpa = ClientMapper.toJpa(client);
+        ClientJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return ClientMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Client> findById(UUID id) {
-        return jpaRepository.findById(id).map(ClientMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return ClientMapper.toDomain(jpa);
+        });
     }
 
     @Override

@@ -22,13 +22,18 @@ public class AddressRepositoryAdapter implements AddressRepository {
 
     @Override
     public Address save(Address address) {
-        AddressJpa saved = jpaRepository.save(AddressMapper.toJpa(address));
+        AddressJpa jpa = AddressMapper.toJpa(address);
+        AddressJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return AddressMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Address> findById(UUID id) {
-        return jpaRepository.findById(id).map(AddressMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return AddressMapper.toDomain(jpa);
+        });
     }
 
     @Override

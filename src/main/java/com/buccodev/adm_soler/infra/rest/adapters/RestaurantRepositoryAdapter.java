@@ -22,13 +22,18 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
 
     @Override
     public Restaurant save(Restaurant restaurant) {
-        RestaurantJpa saved = jpaRepository.save(RestaurantMapper.toJpa(restaurant));
+        RestaurantJpa jpa = RestaurantMapper.toJpa(restaurant);
+        RestaurantJpa saved = jpaRepository.save(jpa);
+        saved.markAsExisting();
         return RestaurantMapper.toDomain(saved);
     }
 
     @Override
     public Optional<Restaurant> findById(UUID id) {
-        return jpaRepository.findById(id).map(RestaurantMapper::toDomain);
+        return jpaRepository.findById(id).map(jpa -> {
+            jpa.markAsExisting();
+            return RestaurantMapper.toDomain(jpa);
+        });
     }
 
     @Override
