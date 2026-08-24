@@ -5,12 +5,10 @@ import com.buccodev.adm_soler.application.dto.user.UserResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.User;
 import com.buccodev.adm_soler.core.repository.UserRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
 public class UserUseCase {
 
     private final UserRepository userRepository;

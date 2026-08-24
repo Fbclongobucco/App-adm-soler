@@ -9,13 +9,11 @@ import com.buccodev.adm_soler.core.domain.Restaurant;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Component
 public class RestaurantUseCase {
 
     private final RestaurantRepository restaurantRepository;

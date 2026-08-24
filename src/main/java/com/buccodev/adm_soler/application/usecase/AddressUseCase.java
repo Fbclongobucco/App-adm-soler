@@ -5,12 +5,10 @@ import com.buccodev.adm_soler.application.dto.address.AddressResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
 public class AddressUseCase {
 
     private final AddressRepository addressRepository;

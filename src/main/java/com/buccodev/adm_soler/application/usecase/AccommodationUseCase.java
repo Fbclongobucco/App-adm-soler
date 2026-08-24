@@ -9,12 +9,10 @@ import com.buccodev.adm_soler.core.domain.Project;
 import com.buccodev.adm_soler.core.repository.AccommodationRepository;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
 public class AccommodationUseCase {
 
     private final AccommodationRepository accommodationRepository;

@@ -5,12 +5,10 @@ import com.buccodev.adm_soler.application.dto.equipment.EquipmentResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Equipment;
 import com.buccodev.adm_soler.core.repository.EquipmentRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
 public class EquipmentUseCase {
 
     private final EquipmentRepository equipmentRepository;

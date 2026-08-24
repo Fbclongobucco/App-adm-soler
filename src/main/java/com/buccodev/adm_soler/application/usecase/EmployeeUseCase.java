@@ -7,12 +7,10 @@ import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.domain.Employee;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.EmployeeRepository;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
 public class EmployeeUseCase {
 
     private final EmployeeRepository employeeRepository;
