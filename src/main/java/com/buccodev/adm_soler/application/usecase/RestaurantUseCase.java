@@ -11,6 +11,7 @@ import com.buccodev.adm_soler.core.repository.ProjectRepository;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,6 +70,7 @@ public class RestaurantUseCase {
         restaurant.setAdditionalValues(request.additionalValues());
         restaurant.setDays(request.days());
         restaurant.setAddress(address);
+        restaurant.setUpdatedAt(LocalDateTime.now());
         Restaurant updated = restaurantRepository.save(restaurant);
         return RestaurantResponse.fromDomain(updated);
     }
@@ -78,5 +80,16 @@ public class RestaurantUseCase {
             throw new ResourceNotFoundException("Restaurante nao encontrado com id: " + id);
         }
         restaurantRepository.deleteById(id);
+    }
+
+    public RestaurantResponse addProject(UUID id, UUID projectId) {
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurante nao encontrado com id: " + id));
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + projectId));
+        restaurant.setProject(project);
+        restaurant.setUpdatedAt(LocalDateTime.now());
+        Restaurant updated = restaurantRepository.save(restaurant);
+        return RestaurantResponse.fromDomain(updated);
     }
 }

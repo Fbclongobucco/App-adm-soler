@@ -40,6 +40,11 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantUseCase.update(id, request));
     }
 
+    @PatchMapping("/{id}/project/{projectId}")
+    public ResponseEntity<RestaurantResponse> addProject(@PathVariable UUID id, @PathVariable UUID projectId) {
+        return ResponseEntity.ok(restaurantUseCase.addProject(id, projectId));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         restaurantUseCase.delete(id);

@@ -35,7 +35,7 @@ public class RestaurantMapper {
                 jpa.getEmail(),
                 jpa.getPhone(),
                 jpa.getCnpj(),
-                null,
+                ProjectMapper.toDomain(jpa.getProject()),
                 null,
                 jpa.getIsBilled(),
                 jpa.getLunchPrice(),
