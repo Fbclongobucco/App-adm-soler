@@ -125,14 +125,12 @@ public class Project {
         this.client = client;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
-        this.startDate = validateStartDate(startDate);
-        validateDateRange(this.startDate, this.endDate);
-    }
-
-    public void setEndDate(LocalDateTime endDate) {
-        this.endDate = validateEndDate(endDate);
-        validateDateRange(this.startDate, this.endDate);
+    public void reschedule(LocalDateTime startDate, LocalDateTime endDate) {
+        var newStartDate = validateStartDate(startDate);
+        var newEndDate = validateEndDate(endDate);
+        validateDateRange(newStartDate, newEndDate);
+        this.startDate = newStartDate;
+        this.endDate = newEndDate;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

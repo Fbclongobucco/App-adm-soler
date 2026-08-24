@@ -51,8 +51,7 @@ public class ProjectUseCase {
         project.setOs(request.os());
         project.setServiceProvided(request.serviceProvided());
         project.setClient(client);
-        project.setStartDate(request.startDate());
-        project.setEndDate(request.endDate());
+        project.reschedule(request.startDate(), request.endDate());
         Project updated = projectRepository.save(project);
         return ProjectResponse.fromDomain(updated);
     }

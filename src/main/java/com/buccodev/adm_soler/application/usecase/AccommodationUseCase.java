@@ -56,10 +56,12 @@ public class AccommodationUseCase {
                 .orElseThrow(() -> new ResourceNotFoundException("Acomodacao nao encontrada com id: " + id));
         Address address = addressRepository.findById(request.addressId())
                 .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + request.addressId()));
+        Project project = projectRepository.findById(request.projectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + request.projectId()));
         accommodation.setAddress(address);
+        accommodation.setProject(project);
         accommodation.setCapacity(request.capacity());
-        accommodation.setStartDate(request.startDate());
-        accommodation.setEndDate(request.endDate());
+        accommodation.reschedule(request.startDate(), request.endDate());
         Accommodation updated = accommodationRepository.save(accommodation);
         return AccommodationResponse.fromDomain(updated);
     }

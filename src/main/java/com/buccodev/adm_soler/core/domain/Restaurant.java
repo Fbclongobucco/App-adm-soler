@@ -54,16 +54,21 @@ public class Restaurant {
         this.updatedAt = updatedAt;
     }
 
-    public static Restaurant create(String name, String email, String phone, Project project,
-                                    Boolean isBilled, Integer days, Address address) {
+    public static Restaurant create(String name, String email, String phone, String cnpj,
+                                    Project project, Boolean isBilled, BigDecimal lunchPrice,
+                                    BigDecimal dinnerPrice, BigDecimal additionalValues,
+                                    Integer days, Address address) {
         var now = LocalDateTime.now();
-        var cnpjPlaceholder = "00.000.000/0000-00";
-        var restaurant = new Restaurant(UUID.randomUUID(), name, email, phone, cnpjPlaceholder, project,
-                isBilled, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, days, address, now, now);
+        var restaurant = new Restaurant(UUID.randomUUID(), name, email, phone, cnpj, project,
+                isBilled, orZero(lunchPrice), orZero(dinnerPrice), BigDecimal.ZERO,
+                orZero(additionalValues), BigDecimal.ZERO, days, address, now, now);
         restaurant.calculateTotal();
         restaurant.calculateValuePerEmployee();
         return restaurant;
+    }
+
+    private static BigDecimal orZero(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
     }
 
     public static Restaurant restore(UUID id, String name, String email, String phone, String cnpj,

@@ -97,20 +97,19 @@ public class Accommodation {
     }
 
     public void setCapacity(Integer capacity) {
-        this.capacity = validateCapacity(capacity);
-        if (employees.size() > this.capacity) {
+        var newCapacity = validateCapacity(capacity);
+        if (newCapacity != null && employees.size() > newCapacity) {
             throw new BadRequestException("capacity cannot be less than current number of employees");
         }
+        this.capacity = newCapacity;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
-        this.startDate = validateStartDate(startDate);
-        validateDateRange(this.startDate, this.endDate);
-    }
-
-    public void setEndDate(LocalDateTime endDate) {
-        this.endDate = validateEndDate(endDate);
-        validateDateRange(this.startDate, this.endDate);
+    public void reschedule(LocalDateTime startDate, LocalDateTime endDate) {
+        var newStartDate = validateStartDate(startDate);
+        var newEndDate = validateEndDate(endDate);
+        validateDateRange(newStartDate, newEndDate);
+        this.startDate = newStartDate;
+        this.endDate = newEndDate;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

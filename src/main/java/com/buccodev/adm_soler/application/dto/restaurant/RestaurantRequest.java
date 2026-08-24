@@ -25,8 +25,12 @@ public record RestaurantRequest(
                 name,
                 email,
                 phone,
+                cnpj,
                 project,
                 isBilled,
+                lunchPrice,
+                dinnerPrice,
+                additionalValues,
                 days,
                 address
         );
