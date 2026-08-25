@@ -5,6 +5,7 @@ import com.buccodev.adm_soler.application.dto.address.AddressResponse;
 import com.buccodev.adm_soler.application.usecase.AddressUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,26 +22,31 @@ public class AddressController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AddressResponse> create(@RequestBody AddressRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(addressUseCase.create(request));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<AddressResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(addressUseCase.findById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<List<AddressResponse>> findAll() {
         return ResponseEntity.ok(addressUseCase.findAll());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AddressResponse> update(@PathVariable UUID id, @RequestBody AddressRequest request) {
         return ResponseEntity.ok(addressUseCase.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         addressUseCase.delete(id);
         return ResponseEntity.noContent().build();

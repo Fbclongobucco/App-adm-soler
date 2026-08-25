@@ -58,4 +58,19 @@ public class UserRepositoryAdapter implements UserRepository {
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return jpaRepository.findByEmail(email).map(jpa -> {
+            jpa.markAsExisting();
+            return UserMapper.toDomain(jpa);
+        });
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean existsByEmail(String email) {
+        return jpaRepository.existsByEmail(email);
+    }
 }

@@ -5,6 +5,7 @@ import com.buccodev.adm_soler.application.dto.accommodation.AccommodationRespons
 import com.buccodev.adm_soler.application.usecase.AccommodationUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,26 +22,31 @@ public class AccommodationController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccommodationResponse> create(@RequestBody AccommodationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(accommodationUseCase.create(request));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<AccommodationResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(accommodationUseCase.findById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<List<AccommodationResponse>> findAll() {
         return ResponseEntity.ok(accommodationUseCase.findAll());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AccommodationResponse> update(@PathVariable UUID id, @RequestBody AccommodationRequest request) {
         return ResponseEntity.ok(accommodationUseCase.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         accommodationUseCase.delete(id);
         return ResponseEntity.noContent().build();

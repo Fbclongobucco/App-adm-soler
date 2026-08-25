@@ -1,0 +1,20 @@
+spring:
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+jwt:
+  secret: dGVzdFNlY3JldEtleUZvclVuaXRUZXN0aW5nUHVycG9zZUFuZEJlTXVzdEJlMjU2Qml0cw==
+  access-token:
+    expiration: 900000
+  refresh-token:
+    expiration: 604800000

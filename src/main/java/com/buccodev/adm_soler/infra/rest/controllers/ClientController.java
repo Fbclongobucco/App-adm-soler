@@ -5,6 +5,7 @@ import com.buccodev.adm_soler.application.dto.client.ClientResponse;
 import com.buccodev.adm_soler.application.usecase.ClientUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,26 +22,31 @@ public class ClientController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClientResponse> create(@RequestBody ClientRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(clientUseCase.create(request));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<ClientResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(clientUseCase.findById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<List<ClientResponse>> findAll() {
         return ResponseEntity.ok(clientUseCase.findAll());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ClientResponse> update(@PathVariable UUID id, @RequestBody ClientRequest request) {
         return ResponseEntity.ok(clientUseCase.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         clientUseCase.delete(id);
         return ResponseEntity.noContent().build();

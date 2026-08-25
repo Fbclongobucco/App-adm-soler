@@ -10,3 +10,11 @@ spring:
 # Server
 server:
   port: 8080
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:dGhpc0lzQVZlcnlTZWN1cmVLZXlGb1JXU0hvdWxkQmVNdXN0QmVMb25nRW5vdWdoMjU2Qml0cw==}
+  access-token:
+    expiration: 900000    # 15 minutes
+  refresh-token:
+    expiration: 604800000  # 7 days

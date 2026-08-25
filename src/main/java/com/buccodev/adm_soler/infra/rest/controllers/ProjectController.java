@@ -5,6 +5,7 @@ import com.buccodev.adm_soler.application.dto.project.ProjectResponse;
 import com.buccodev.adm_soler.application.usecase.ProjectUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,26 +22,31 @@ public class ProjectController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProjectResponse> create(@RequestBody ProjectRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(projectUseCase.create(request));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<ProjectResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(projectUseCase.findById(id));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
     public ResponseEntity<List<ProjectResponse>> findAll() {
         return ResponseEntity.ok(projectUseCase.findAll());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProjectResponse> update(@PathVariable UUID id, @RequestBody ProjectRequest request) {
         return ResponseEntity.ok(projectUseCase.update(id, request));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         projectUseCase.delete(id);
         return ResponseEntity.noContent().build();
