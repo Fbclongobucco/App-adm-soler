@@ -16,6 +16,7 @@ public class UserJpa implements Persistable<UUID> {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)

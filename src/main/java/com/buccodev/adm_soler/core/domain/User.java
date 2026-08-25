@@ -38,8 +38,12 @@ public class User {
     }
 
     public static User create(String name, String email, String password, String phone) {
+        return create(name, email, password, phone, Role.USER);
+    }
+
+    public static User create(String name, String email, String password, String phone, Role role) {
         var now = LocalDateTime.now();
-        return new User(UUID.randomUUID(), name, email, password, phone, Role.USER, now, now);
+        return new User(UUID.randomUUID(), name, email, password, phone, role, now, now);
     }
 
     public static User restore(UUID id, String name, String email, String password, String phone,
@@ -95,6 +99,18 @@ public class User {
         this.phone = validatePhone(phone);
     }
 
+    /**
+     * Substitui a senha pelo seu hash. Diferente de {@link #setPassword(String)},
+     * nao aplica as regras de senha em claro: um hash nao tem forca de senha.
+     */
+    public void applyHashedPassword(String hashedPassword) {
+        Objects.requireNonNull(hashedPassword, "hashedPassword is required");
+        if (hashedPassword.isBlank()) {
+            throw new BadRequestException("hashedPassword cannot be blank");
+        }
+        this.password = hashedPassword;
+    }
+
     public void setRole(Role role) {
         this.role = Objects.requireNonNull(role, "role is required");
     }
@@ -112,13 +128,26 @@ public class User {
     }
 
     private String validateEmail(String email) {
-        if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
+        Objects.requireNonNull(email, "email is required");
+        if (email.isBlank()) {
+            throw new BadRequestException("email cannot be blank");
+        }
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
             throw new BadRequestException("invalid email format");
         }
         return email;
     }
 
     private String validatePassword(String password) {
+        requireStrongPassword(password);
+        return password;
+    }
+
+    /**
+     * Regras da senha em claro. Publico porque quem faz o hash (caso de uso)
+     * precisa validar a senha original antes de ela deixar de ser legivel.
+     */
+    public static void requireStrongPassword(String password) {
         Objects.requireNonNull(password, "password is required");
         if (password.isBlank()) {
             throw new BadRequestException("password cannot be blank");
@@ -126,7 +155,6 @@ public class User {
         if (password.length() < 6) {
             throw new BadRequestException("password must be at least 6 characters");
         }
-        return password;
     }
 
     private String validatePhone(String phone) {

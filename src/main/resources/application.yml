@@ -10,3 +10,17 @@ spring:
 # Server
 server:
   port: 8080
+
+# Seguranca
+security:
+  jwt:
+    issuer: adm-soler
+    # Access token curto: ele carrega o perfil, entao uma mudanca de permissao
+    # so espera este intervalo para valer.
+    access-token-ttl: 15m
+    # Refresh token longo, mas revogavel (persistido em hash).
+    refresh-token-ttl: 7d
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173

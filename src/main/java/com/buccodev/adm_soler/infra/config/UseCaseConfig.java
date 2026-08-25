@@ -1,6 +1,7 @@
 package com.buccodev.adm_soler.infra.config;
 
 import com.buccodev.adm_soler.application.usecase.AccommodationUseCase;
+import com.buccodev.adm_soler.application.usecase.AuthUseCase;
 import com.buccodev.adm_soler.application.usecase.AddressUseCase;
 import com.buccodev.adm_soler.application.usecase.ClientUseCase;
 import com.buccodev.adm_soler.application.usecase.EmployeeUseCase;
@@ -14,18 +15,16 @@ import com.buccodev.adm_soler.core.repository.ClientRepository;
 import com.buccodev.adm_soler.core.repository.EmployeeRepository;
 import com.buccodev.adm_soler.core.repository.EquipmentRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
+import com.buccodev.adm_soler.core.repository.RefreshTokenRepository;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
 import com.buccodev.adm_soler.core.repository.UserRepository;
+import com.buccodev.adm_soler.core.security.AccessTokenProvider;
+import com.buccodev.adm_soler.core.security.PasswordHasher;
+import com.buccodev.adm_soler.core.security.RefreshTokenCodec;
+import com.buccodev.adm_soler.infra.security.JwtProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Composition root dos casos de uso.
- *
- * Os use cases sao POJOs, sem nenhuma anotacao de framework: quem os conhece
- * e o Spring e esta classe, que vive na camada de infraestrutura. A dependencia
- * aponta de infra para application, nunca o contrario.
- */
 @Configuration
 public class UseCaseConfig {
 
@@ -35,8 +34,21 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public UserUseCase userUseCase(UserRepository userRepository) {
-        return new UserUseCase(userRepository);
+    public UserUseCase userUseCase(UserRepository userRepository,
+                                   RefreshTokenRepository refreshTokenRepository,
+                                   PasswordHasher passwordHasher) {
+        return new UserUseCase(userRepository, refreshTokenRepository, passwordHasher);
+    }
+
+    @Bean
+    public AuthUseCase authUseCase(UserRepository userRepository,
+                                   RefreshTokenRepository refreshTokenRepository,
+                                   PasswordHasher passwordHasher,
+                                   AccessTokenProvider accessTokenProvider,
+                                   RefreshTokenCodec refreshTokenCodec,
+                                   JwtProperties jwtProperties) {
+        return new AuthUseCase(userRepository, refreshTokenRepository, passwordHasher,
+                accessTokenProvider, refreshTokenCodec, jwtProperties.getRefreshTokenTtl());
     }
 
     @Bean

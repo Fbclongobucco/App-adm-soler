@@ -4,13 +4,37 @@
 
 BASE_URL="http://localhost:8080/api/v1"
 
+# Credenciais do admin semeado pelo perfil h2 (application-h2.yml).
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@admsoler.local}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
+
 echo "========================================="
 echo "  TESTES DA API ADM_SOLER"
 echo "========================================="
 
+# ==========================================
+# LOGIN - a API e stateless: todo endpoint
+# abaixo exige Authorization: Bearer <token>
+# ==========================================
+echo -e "\n--- Autenticando como ADMIN ---"
+LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/login" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}")
+
+TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
+REFRESH_TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"refreshToken":"[^"]*"' | cut -d'"' -f4)
+
+if [ -z "$TOKEN" ]; then
+  echo "Falha no login. Resposta: $LOGIN_RESPONSE"
+  exit 1
+fi
+echo "Autenticado. Access token obtido."
+
+AUTH="Authorization: Bearer $TOKEN"
+
 # 1. ADDRESS
 echo -e "\n--- 1. Criando Address ---"
-ADDRESS_RESPONSE=$(curl -s -X POST "$BASE_URL/addresses" \
+ADDRESS_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/addresses" \
   -H "Content-Type: application/json" \
   -d '{
     "street": "Rua das Flores",
@@ -28,7 +52,7 @@ echo "Address ID: $ADDRESS_ID"
 
 # 2. USER
 echo -e "\n--- 2. Criando User ---"
-USER_RESPONSE=$(curl -s -X POST "$BASE_URL/users" \
+USER_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/users" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "João Silva",
@@ -42,7 +66,7 @@ echo "User ID: $USER_ID"
 
 # 3. EQUIPMENT
 echo -e "\n--- 3. Criando Equipment ---"
-EQUIPMENT_RESPONSE=$(curl -s -X POST "$BASE_URL/equipments" \
+EQUIPMENT_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/equipments" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Notebook Dell",
@@ -54,7 +78,7 @@ echo "Equipment ID: $EQUIPMENT_ID"
 
 # 4. CLIENT (depende de Address)
 echo -e "\n--- 4. Criando Client ---"
-CLIENT_RESPONSE=$(curl -s -X POST "$BASE_URL/clients" \
+CLIENT_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/clients" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"Empresa ABC Ltda\",
@@ -69,7 +93,7 @@ echo "Client ID: $CLIENT_ID"
 
 # 5. EMPLOYEE (depende de Address)
 echo -e "\n--- 5. Criando Employee ---"
-EMPLOYEE_RESPONSE=$(curl -s -X POST "$BASE_URL/employees" \
+EMPLOYEE_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/employees" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"Maria Santos\",
@@ -84,7 +108,7 @@ echo "Employee ID: $EMPLOYEE_ID"
 
 # 6. PROJECT (depende de Client)
 echo -e "\n--- 6. Criando Project ---"
-PROJECT_RESPONSE=$(curl -s -X POST "$BASE_URL/projects" \
+PROJECT_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/projects" \
   -H "Content-Type: application/json" \
   -d "{
     \"os\": \"OS-2024-001\",
@@ -99,7 +123,7 @@ echo "Project ID: $PROJECT_ID"
 
 # 7. RESTAURANT (depende de Address + Project)
 echo -e "\n--- 7. Criando Restaurant ---"
-RESTAURANT_RESPONSE=$(curl -s -X POST "$BASE_URL/restaurants" \
+RESTAURANT_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/restaurants" \
   -H "Content-Type: application/json" \
   -d "{
     \"name\": \"Restaurante Sabor da Terra\",
@@ -120,7 +144,7 @@ echo "Restaurant ID: $RESTAURANT_ID"
 
 # 8. ACCOMMODATION (depende de Address + Project)
 echo -e "\n--- 8. Criando Accommodation ---"
-ACCOMMODATION_RESPONSE=$(curl -s -X POST "$BASE_URL/accommodations" \
+ACCOMMODATION_RESPONSE=$(curl -s -H "$AUTH" -X POST "$BASE_URL/accommodations" \
   -H "Content-Type: application/json" \
   -d "{
     \"addressId\": \"$ADDRESS_ID\",
@@ -141,28 +165,28 @@ echo "  TESTES GET (LISTAR TODOS)"
 echo "========================================="
 
 echo -e "\n--- Listando Addresses ---"
-curl -s "$BASE_URL/addresses" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/addresses" | python3 -m json.tool
 
 echo -e "\n--- Listando Users ---"
-curl -s "$BASE_URL/users" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/users" | python3 -m json.tool
 
 echo -e "\n--- Listando Equipments ---"
-curl -s "$BASE_URL/equipments" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/equipments" | python3 -m json.tool
 
 echo -e "\n--- Listando Clients ---"
-curl -s "$BASE_URL/clients" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/clients" | python3 -m json.tool
 
 echo -e "\n--- Listando Employees ---"
-curl -s "$BASE_URL/employees" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/employees" | python3 -m json.tool
 
 echo -e "\n--- Listando Projects ---"
-curl -s "$BASE_URL/projects" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/projects" | python3 -m json.tool
 
 echo -e "\n--- Listando Restaurants ---"
-curl -s "$BASE_URL/restaurants" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/restaurants" | python3 -m json.tool
 
 echo -e "\n--- Listando Accommodations ---"
-curl -s "$BASE_URL/accommodations" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/accommodations" | python3 -m json.tool
 
 # ==========================================
 # TESTES GET POR ID
@@ -172,10 +196,10 @@ echo "  TESTES GET POR ID"
 echo "========================================="
 
 echo -e "\n--- Buscando Address por ID ---"
-curl -s "$BASE_URL/addresses/$ADDRESS_ID" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/addresses/$ADDRESS_ID" | python3 -m json.tool
 
 echo -e "\n--- Buscando Project por ID ---"
-curl -s "$BASE_URL/projects/$PROJECT_ID" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/projects/$PROJECT_ID" | python3 -m json.tool
 
 # ==========================================
 # TESTE PUT (ATUALIZAR)
@@ -185,7 +209,7 @@ echo "  TESTE PUT (ATUALIZAR)"
 echo "========================================="
 
 echo -e "\n--- Atualizando Address ---"
-curl -s -X PUT "$BASE_URL/addresses/$ADDRESS_ID" \
+curl -s -H "$AUTH" -X PUT "$BASE_URL/addresses/$ADDRESS_ID" \
   -H "Content-Type: application/json" \
   -d '{
     "street": "Rua das Flores",
@@ -206,10 +230,35 @@ echo "  TESTE DELETE"
 echo "========================================="
 
 echo -e "\n--- Deletando Equipment ---"
-curl -s -w "HTTP Status: %{http_code}\n" -X DELETE "$BASE_URL/equipments/$EQUIPMENT_ID"
+curl -s -H "$AUTH" -w "HTTP Status: %{http_code}\n" -X DELETE "$BASE_URL/equipments/$EQUIPMENT_ID"
 
 echo -e "\n--- Verificando se Equipment foi deletado ---"
-curl -s "$BASE_URL/equipments" | python3 -m json.tool
+curl -s -H "$AUTH" "$BASE_URL/equipments" | python3 -m json.tool
+
+# ==========================================
+# TESTES DE AUTENTICACAO
+# ==========================================
+echo -e "\n========================================="
+echo "  TESTES DE AUTENTICACAO"
+echo "========================================="
+
+echo -e "\n--- Usuario autenticado (GET /auth/me) ---"
+curl -s -H "$AUTH" "$BASE_URL/auth/me" | python3 -m json.tool
+
+echo -e "\n--- Sem token (esperado 401) ---"
+curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" "$BASE_URL/users"
+
+echo -e "\n--- Renovando a sessao (POST /auth/refresh) ---"
+REFRESH_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/refresh" \
+  -H "Content-Type: application/json" \
+  -d "{\"refreshToken\":\"$REFRESH_TOKEN\"}")
+NEW_REFRESH=$(echo "$REFRESH_RESPONSE" | grep -o '"refreshToken":"[^"]*"' | cut -d'"' -f4)
+echo "Refresh token rotacionado: ${NEW_REFRESH:0:12}..."
+
+echo -e "\n--- Reusando o refresh token antigo (esperado 401) ---"
+curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" -X POST "$BASE_URL/auth/refresh" \
+  -H "Content-Type: application/json" \
+  -d "{\"refreshToken\":\"$REFRESH_TOKEN\"}"
 
 echo -e "\n========================================="
 echo "  TODOS OS TESTES CONCLUIDOS!"

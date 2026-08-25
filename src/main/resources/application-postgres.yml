@@ -9,3 +9,14 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: validate
+
+# Sem default: a aplicacao nao sobe sem JWT_SECRET nem sem o admin inicial
+# definidos no ambiente.
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+  bootstrap-admin:
+    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+    name: ${BOOTSTRAP_ADMIN_NAME:Administrador}
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}

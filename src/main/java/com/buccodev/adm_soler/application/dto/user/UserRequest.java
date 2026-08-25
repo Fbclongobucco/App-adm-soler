@@ -6,27 +6,11 @@ public record UserRequest(
         String name,
         String email,
         String password,
-        String phone
+        String phone,
+        User.Role role
 ) {
-    public User toDomain() {
-        return User.create(
-                name,
-                email,
-                password,
-                phone
-        );
-    }
-
-    public User toDomain(java.util.UUID id) {
-        return User.restore(
-                id,
-                name,
-                email,
-                password,
-                phone,
-                User.Role.USER,
-                java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.now()
-        );
+    /** Perfil aplicado quando o request nao informa um: o menos privilegiado dos internos. */
+    public User.Role roleOrDefault() {
+        return role != null ? role : User.Role.USER;
     }
 }
