@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import org.springframework.data.domain.Persistable;
@@ -44,6 +45,21 @@ public class RefreshTokenJpa implements Persistable<UUID> {
     private boolean newEntity = true;
 
     public RefreshTokenJpa() {
+    }
+
+    /**
+     * Toda entidade que veio do banco existe, por definicao.
+     *
+     * Sem este callback o campo transiente {@code newEntity} continuava {@code true}
+     * numa entidade recem-carregada, e o {@code delete} do Spring Data desiste em
+     * silencio quando {@link #isNew()} responde {@code true}: o DELETE devolvia 204
+     * sem apagar nada. Os adapters chamam {@code markAsExisting()} apos os seus
+     * proprios findById, mas o {@code deleteById} faz uma busca interna que nao
+     * passa por eles.
+     */
+    @PostLoad
+    void markLoadedAsExisting() {
+        this.newEntity = false;
     }
 
     @Override

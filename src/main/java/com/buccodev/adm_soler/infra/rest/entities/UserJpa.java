@@ -50,6 +50,21 @@ public class UserJpa implements Persistable<UUID> {
         this.updatedAt = updatedAt;
     }
 
+    /**
+     * Toda entidade que veio do banco existe, por definicao.
+     *
+     * Sem este callback o campo transiente {@code newEntity} continuava {@code true}
+     * numa entidade recem-carregada, e o {@code delete} do Spring Data desiste em
+     * silencio quando {@link #isNew()} responde {@code true}: o DELETE devolvia 204
+     * sem apagar nada. Os adapters chamam {@code markAsExisting()} apos os seus
+     * proprios findById, mas o {@code deleteById} faz uma busca interna que nao
+     * passa por eles.
+     */
+    @PostLoad
+    void markLoadedAsExisting() {
+        this.newEntity = false;
+    }
+
     @Override
     public boolean isNew() {
         return newEntity;
