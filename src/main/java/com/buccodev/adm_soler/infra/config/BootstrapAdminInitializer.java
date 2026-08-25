@@ -20,6 +20,13 @@ public class BootstrapAdminInitializer implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(BootstrapAdminInitializer.class);
 
+    /**
+     * Senha default de application.yml. Esta versionada no repositorio, logo e
+     * publica: se ela chegar aqui, o ambiente nao sobrescreveu
+     * BOOTSTRAP_ADMIN_PASSWORD e o aviso precisa ser barulhento.
+     */
+    private static final String PUBLIC_DEFAULT_PASSWORD = "1234567";
+
     private final BootstrapAdminProperties properties;
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
@@ -52,6 +59,10 @@ public class BootstrapAdminInitializer implements ApplicationRunner {
         userRepository.save(admin);
 
         log.warn("Admin inicial criado para {}. Troque a senha em PUT /api/v1/auth/me/password", email);
+        if (PUBLIC_DEFAULT_PASSWORD.equals(properties.getPassword())) {
+            log.warn("ATENCAO: o admin {} esta com a senha default do repositorio, que e publica. "
+                    + "Defina BOOTSTRAP_ADMIN_PASSWORD ou troque a senha antes de expor a API", email);
+        }
     }
 
     private boolean isBlank(String value) {

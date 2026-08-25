@@ -14,12 +14,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
-# Segredo e admin de desenvolvimento. Nada disso vale para producao.
+# Segredo de desenvolvimento. Nao vale para producao.
 security:
   jwt:
     secret: ${JWT_SECRET:dev-only-secret-troque-em-producao-0123456789abcdef}
-  bootstrap-admin:
-    enabled: true
-    name: Administrador
-    email: admin@admsoler.local
-    password: admin123

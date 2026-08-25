@@ -4,9 +4,9 @@
 
 BASE_URL="http://localhost:8080/api/v1"
 
-# Credenciais do admin semeado pelo perfil h2 (application-h2.yml).
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@admsoler.local}"
-ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin123}"
+# Credenciais do admin semeado no start (security.bootstrap-admin).
+ADMIN_EMAIL="${ADMIN_EMAIL:-email@soler.com.br}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-1234567}"
 
 echo "========================================="
 echo "  TESTES DA API ADM_SOLER"

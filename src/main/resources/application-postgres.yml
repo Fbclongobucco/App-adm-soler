@@ -10,13 +10,9 @@ spring:
     hibernate:
       ddl-auto: validate
 
-# Sem default: a aplicacao nao sobe sem JWT_SECRET nem sem o admin inicial
-# definidos no ambiente.
+# Sem default: a aplicacao nao sobe sem JWT_SECRET definido no ambiente.
+# O admin inicial vem de application.yml; em producao sobrescreva
+# BOOTSTRAP_ADMIN_EMAIL e BOOTSTRAP_ADMIN_PASSWORD.
 security:
   jwt:
     secret: ${JWT_SECRET}
-  bootstrap-admin:
-    enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
-    name: ${BOOTSTRAP_ADMIN_NAME:Administrador}
-    email: ${BOOTSTRAP_ADMIN_EMAIL:}
-    password: ${BOOTSTRAP_ADMIN_PASSWORD:}

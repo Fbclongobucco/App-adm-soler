@@ -24,8 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 class AuthFlowTest {
 
-    private static final String ADMIN_EMAIL = "admin@admsoler.local";
-    private static final String ADMIN_PASSWORD = "admin123";
+    private static final String ADMIN_EMAIL = "email@soler.com.br";
+    private static final String ADMIN_PASSWORD = "1234567";
 
     @Autowired
     private WebApplicationContext context;
@@ -117,7 +117,7 @@ class AuthFlowTest {
                 .andReturn().getResponse().getContentAsString();
         String unknown = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\":\"ninguem@admsoler.local\",\"password\":\"errada\"}"))
+                        .content("{\"email\":\"ninguem@soler.com.br\",\"password\":\"errada\"}"))
                 .andExpect(status().isUnauthorized())
                 .andReturn().getResponse().getContentAsString();
 
