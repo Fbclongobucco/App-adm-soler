@@ -28,11 +28,11 @@ import java.util.UUID;
  * valida sozinha pela assinatura. O refresh token e um valor opaco, longo e
  * persistido em hash, para que uma sessao possa ser revogada - o unico estado
  * de sessao que existe.
+ *
+ * As mensagens de erro vivem nas fabricas das proprias excecoes: o caso de uso
+ * diz o que aconteceu, nao como se escreve.
  */
 public class AuthUseCase {
-
-    /** Mensagem unica para credencial errada: nao revela se o email existe. */
-    private static final String INVALID_CREDENTIALS = "Email ou senha invalidos";
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -57,14 +57,14 @@ public class AuthUseCase {
 
     public AuthResponse login(LoginRequest request) {
         if (request == null || isBlank(request.email()) || isBlank(request.password())) {
-            throw new BadRequestException("email e password sao obrigatorios");
+            throw BadRequestException.missingLoginCredentials();
         }
 
         User user = userRepository.findByEmail(request.email().trim().toLowerCase())
-                .orElseThrow(() -> new UnauthorizedException(INVALID_CREDENTIALS));
+                .orElseThrow(UnauthorizedException::invalidCredentials);
 
         if (!passwordHasher.matches(request.password(), user.getPassword())) {
-            throw new UnauthorizedException(INVALID_CREDENTIALS);
+            throw UnauthorizedException.invalidCredentials();
         }
 
         return issueTokens(user);
@@ -77,12 +77,12 @@ public class AuthUseCase {
      */
     public AuthResponse refresh(String refreshTokenValue) {
         if (isBlank(refreshTokenValue)) {
-            throw new BadRequestException("refreshToken e obrigatorio");
+            throw BadRequestException.missingRefreshToken();
         }
 
         String fingerprint = refreshTokenCodec.fingerprint(refreshTokenValue);
         RefreshToken stored = refreshTokenRepository.findByTokenHash(fingerprint)
-                .orElseThrow(() -> new UnauthorizedException("Refresh token invalido"));
+                .orElseThrow(UnauthorizedException::invalidRefreshToken);
 
         LocalDateTime now = LocalDateTime.now();
         if (stored.isRevoked()) {
@@ -92,18 +92,18 @@ public class AuthUseCase {
             // demais sessoes daria a qualquer token velho o poder de deslogar.
             if (stored.wasRotated()) {
                 revokeAllSessions(stored.getUserId(), RevokedReason.SECURITY);
-                throw new UnauthorizedException("Refresh token ja utilizado; sessoes revogadas");
+                throw UnauthorizedException.refreshTokenReused();
             }
-            throw new UnauthorizedException("Refresh token invalido");
+            throw UnauthorizedException.invalidRefreshToken();
         }
         if (stored.isExpired(now)) {
             stored.revoke(RevokedReason.EXPIRED);
             refreshTokenRepository.save(stored);
-            throw new UnauthorizedException("Refresh token expirado");
+            throw UnauthorizedException.expiredRefreshToken();
         }
 
         User user = userRepository.findById(stored.getUserId())
-                .orElseThrow(() -> new UnauthorizedException("Refresh token invalido"));
+                .orElseThrow(UnauthorizedException::invalidRefreshToken);
 
         stored.revoke(RevokedReason.ROTATED);
         refreshTokenRepository.save(stored);
@@ -130,7 +130,7 @@ public class AuthUseCase {
 
     public UserResponse me(UUID userId) {
         return UserResponse.fromDomain(userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado com id: " + userId)));
+                .orElseThrow(() -> ResourceNotFoundException.userNotFound(userId)));
     }
 
     /**
@@ -139,17 +139,17 @@ public class AuthUseCase {
      */
     public void changeOwnPassword(UUID userId, ChangePasswordRequest request) {
         if (request == null || isBlank(request.currentPassword()) || isBlank(request.newPassword())) {
-            throw new BadRequestException("currentPassword e newPassword sao obrigatorios");
+            throw BadRequestException.missingPasswordChangeFields();
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado com id: " + userId));
+                .orElseThrow(() -> ResourceNotFoundException.userNotFound(userId));
 
         if (!passwordHasher.matches(request.currentPassword(), user.getPassword())) {
-            throw new UnauthorizedException("Senha atual invalida");
+            throw UnauthorizedException.invalidCurrentPassword();
         }
         if (request.currentPassword().equals(request.newPassword())) {
-            throw new BadRequestException("A nova senha deve ser diferente da atual");
+            throw BadRequestException.newPasswordMustDiffer();
         }
 
         User.requireStrongPassword(request.newPassword());
