@@ -21,7 +21,7 @@ import com.buccodev.adm_soler.core.repository.UserRepository;
 import com.buccodev.adm_soler.core.security.AccessTokenProvider;
 import com.buccodev.adm_soler.core.security.PasswordHasher;
 import com.buccodev.adm_soler.core.security.RefreshTokenCodec;
-import com.buccodev.adm_soler.infra.security.JwtProperties;
+import com.buccodev.adm_soler.infra.security.jwt.JwtProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

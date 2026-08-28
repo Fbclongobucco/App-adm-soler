@@ -6,7 +6,7 @@ import com.buccodev.adm_soler.application.dto.auth.LoginRequest;
 import com.buccodev.adm_soler.application.dto.auth.RefreshRequest;
 import com.buccodev.adm_soler.application.dto.user.UserResponse;
 import com.buccodev.adm_soler.application.usecase.AuthUseCase;
-import com.buccodev.adm_soler.infra.security.AuthenticatedUser;
+import com.buccodev.adm_soler.infra.security.jwt.AuthenticatedUser;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;

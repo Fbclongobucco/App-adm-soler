@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.refreshtoken;
 
 import com.buccodev.adm_soler.core.security.RefreshTokenCodec;
 import org.springframework.stereotype.Component;

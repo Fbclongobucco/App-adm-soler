@@ -1,6 +1,8 @@
 package com.buccodev.adm_soler.infra.security;
 
 import com.buccodev.adm_soler.core.domain.User;
+import com.buccodev.adm_soler.infra.security.config.SecurityConfig;
+import com.buccodev.adm_soler.infra.security.jwt.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

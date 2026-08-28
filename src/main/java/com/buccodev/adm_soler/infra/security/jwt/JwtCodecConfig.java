@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.jwt;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.context.annotation.Bean;

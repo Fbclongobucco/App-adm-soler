@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.handler;
 
 import tools.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

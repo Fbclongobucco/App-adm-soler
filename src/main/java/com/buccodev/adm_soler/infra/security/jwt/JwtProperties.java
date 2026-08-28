@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.jwt;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

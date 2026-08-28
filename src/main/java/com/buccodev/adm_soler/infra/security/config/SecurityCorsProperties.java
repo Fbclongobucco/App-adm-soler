@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

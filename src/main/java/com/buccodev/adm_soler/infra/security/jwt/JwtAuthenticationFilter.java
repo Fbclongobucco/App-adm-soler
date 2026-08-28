@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,14 +17,14 @@ import java.util.List;
 /**
  * Traduz o header {@code Authorization: Bearer <jwt>} em uma Authentication.
  *
- * Um token invalido nao interrompe a cadeia: o motivo fica num atributo da
- * requisicao e a decisao final e do {@link RestAuthenticationEntryPoint}. Assim
- * um token velho pendurado no cliente nao quebra as rotas publicas de login.
+ * Um token invalido nao interrompe a cadeia: o motivo fica em
+ * {@link #AUTH_ERROR_ATTRIBUTE} e a decisao final e do handler de 401. Assim um
+ * token velho pendurado no cliente nao quebra as rotas publicas de login.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    static final String AUTH_ERROR_ATTRIBUTE = "jwt.auth.error";
+    public static final String AUTH_ERROR_ATTRIBUTE = "jwt.auth.error";
 
     private static final String HEADER = "Authorization";
     private static final String PREFIX = "Bearer ";

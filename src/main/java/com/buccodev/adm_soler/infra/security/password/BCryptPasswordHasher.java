@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.password;
 
 import com.buccodev.adm_soler.core.security.PasswordHasher;
 import org.springframework.security.crypto.password.PasswordEncoder;

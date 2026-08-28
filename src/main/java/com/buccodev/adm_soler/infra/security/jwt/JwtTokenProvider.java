@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.jwt;
 
 import com.buccodev.adm_soler.core.domain.User;
 import com.buccodev.adm_soler.core.security.AccessTokenProvider;

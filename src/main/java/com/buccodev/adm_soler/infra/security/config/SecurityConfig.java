@@ -1,5 +1,9 @@
-package com.buccodev.adm_soler.infra.security;
+package com.buccodev.adm_soler.infra.security.config;
 
+import com.buccodev.adm_soler.infra.security.handler.RestAccessDeniedHandler;
+import com.buccodev.adm_soler.infra.security.handler.RestAuthenticationEntryPoint;
+import com.buccodev.adm_soler.infra.security.jwt.JwtAuthenticationFilter;
+import com.buccodev.adm_soler.infra.security.jwt.JwtProperties;
 import jakarta.servlet.DispatcherType;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
