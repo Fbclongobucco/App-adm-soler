@@ -70,8 +70,13 @@ public class UseCaseConfig {
 
     @Bean
     public ProjectUseCase projectUseCase(ProjectRepository projectRepository,
-                                         ClientRepository clientRepository) {
-        return new ProjectUseCase(projectRepository, clientRepository);
+                                         ClientRepository clientRepository,
+                                         RestaurantRepository restaurantRepository,
+                                         AccommodationRepository accommodationRepository,
+                                         EmployeeRepository employeeRepository,
+                                         EquipmentRepository equipmentRepository) {
+        return new ProjectUseCase(projectRepository, clientRepository, restaurantRepository,
+                accommodationRepository, employeeRepository, equipmentRepository);
     }
 
     @Bean
