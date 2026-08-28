@@ -20,11 +20,6 @@ public class BootstrapAdminInitializer implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(BootstrapAdminInitializer.class);
 
-    /**
-     * Senha default de application.yml. Esta versionada no repositorio, logo e
-     * publica: se ela chegar aqui, o ambiente nao sobrescreveu
-     * BOOTSTRAP_ADMIN_PASSWORD e o aviso precisa ser barulhento.
-     */
     private static final String PUBLIC_DEFAULT_PASSWORD = "1234567";
 
     private final BootstrapAdminProperties properties;

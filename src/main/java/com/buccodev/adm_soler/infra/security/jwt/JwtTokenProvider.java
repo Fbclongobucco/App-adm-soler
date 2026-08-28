@@ -16,13 +16,6 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Emissao e verificacao do access token (JWT assinado com HS256).
- *
- * O token carrega id, email e perfil do usuario. Como a autorizacao le o perfil
- * daqui e nao do banco, o TTL e curto: uma mudanca de perfil passa a valer, no
- * pior caso, depois de {@code security.jwt.access-token-ttl}.
- */
 @Component
 public class JwtTokenProvider implements AccessTokenProvider {
 

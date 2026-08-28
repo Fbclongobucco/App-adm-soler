@@ -14,10 +14,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/**
- * 401 em JSON, no mesmo formato do GlobalExceptionHandler. Sem WWW-Authenticate
- * de Basic, para o navegador nao abrir a caixa de login nativa.
- */
+
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

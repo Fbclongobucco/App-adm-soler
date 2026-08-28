@@ -4,14 +4,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
-/**
- * Configuracao dos tokens. O segredo nunca tem default em producao: o perfil
- * postgres o le de JWT_SECRET e a aplicacao nao sobe sem ele.
- */
+
 @ConfigurationProperties(prefix = "security.jwt")
 public class JwtProperties {
 
-    /** Minimo exigido pelo HS256: 256 bits de chave. */
     private static final int MIN_SECRET_LENGTH = 32;
 
     private String secret;

@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/** 403 em JSON: autenticado, mas sem perfil para a operacao pedida. */
 @Component
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
 
