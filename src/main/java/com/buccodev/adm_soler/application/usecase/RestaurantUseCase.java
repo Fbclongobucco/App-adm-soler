@@ -2,6 +2,7 @@ package com.buccodev.adm_soler.application.usecase;
 
 import com.buccodev.adm_soler.application.dto.restaurant.RestaurantRequest;
 import com.buccodev.adm_soler.application.dto.restaurant.RestaurantResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.domain.Project;
@@ -9,9 +10,10 @@ import com.buccodev.adm_soler.core.domain.Restaurant;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -45,10 +47,9 @@ public class RestaurantUseCase {
         return RestaurantResponse.fromDomain(restaurant);
     }
 
-    public List<RestaurantResponse> findAll() {
-        return restaurantRepository.findAll().stream()
-                .map(RestaurantResponse::fromDomain)
-                .toList();
+    public PageResponse<RestaurantResponse> findAll(int page, int size) {
+        PageResult<Restaurant> result = restaurantRepository.findAll(new PageQuery(page, size));
+        return PageResponse.from(result, RestaurantResponse::fromDomain);
     }
 
     public RestaurantResponse update(UUID id, RestaurantRequest request) {

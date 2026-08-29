@@ -2,13 +2,16 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.User;
 import com.buccodev.adm_soler.core.repository.UserRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.UserJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.UserJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.UserMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,8 +47,15 @@ public class UserRepositoryAdapter implements UserRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<User> findAll() {
-        return jpaRepository.findAll().stream().map(UserMapper::toDomain).toList();
+    public PageResult<User> findAll(PageQuery pageQuery) {
+        Page<UserJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new PageResult<>(
+                page.getContent().stream().map(UserMapper::toDomain).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @Transactional

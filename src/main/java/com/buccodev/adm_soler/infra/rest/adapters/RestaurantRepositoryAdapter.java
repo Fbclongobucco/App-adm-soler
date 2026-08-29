@@ -2,13 +2,16 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Restaurant;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.RestaurantJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.RestaurantJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.RestaurantMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,8 +47,15 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Restaurant> findAll() {
-        return jpaRepository.findAll().stream().map(RestaurantMapper::toDomain).toList();
+    public PageResult<Restaurant> findAll(PageQuery pageQuery) {
+        Page<RestaurantJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new PageResult<>(
+                page.getContent().stream().map(RestaurantMapper::toDomain).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @Transactional

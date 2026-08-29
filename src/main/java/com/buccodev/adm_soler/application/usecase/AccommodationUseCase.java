@@ -2,6 +2,7 @@ package com.buccodev.adm_soler.application.usecase;
 
 import com.buccodev.adm_soler.application.dto.accommodation.AccommodationRequest;
 import com.buccodev.adm_soler.application.dto.accommodation.AccommodationResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Accommodation;
 import com.buccodev.adm_soler.core.domain.Address;
@@ -9,9 +10,10 @@ import com.buccodev.adm_soler.core.domain.Project;
 import com.buccodev.adm_soler.core.repository.AccommodationRepository;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -45,10 +47,9 @@ public class AccommodationUseCase {
         return AccommodationResponse.fromDomain(accommodation);
     }
 
-    public List<AccommodationResponse> findAll() {
-        return accommodationRepository.findAll().stream()
-                .map(AccommodationResponse::fromDomain)
-                .toList();
+    public PageResponse<AccommodationResponse> findAll(int page, int size) {
+        PageResult<Accommodation> result = accommodationRepository.findAll(new PageQuery(page, size));
+        return PageResponse.from(result, AccommodationResponse::fromDomain);
     }
 
     public AccommodationResponse update(UUID id, AccommodationRequest request) {

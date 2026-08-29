@@ -2,14 +2,16 @@ package com.buccodev.adm_soler.application.usecase;
 
 import com.buccodev.adm_soler.application.dto.employee.EmployeeRequest;
 import com.buccodev.adm_soler.application.dto.employee.EmployeeResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.domain.Employee;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.EmployeeRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -37,10 +39,9 @@ public class EmployeeUseCase {
         return EmployeeResponse.fromDomain(employee);
     }
 
-    public List<EmployeeResponse> findAll() {
-        return employeeRepository.findAll().stream()
-                .map(EmployeeResponse::fromDomain)
-                .toList();
+    public PageResponse<EmployeeResponse> findAll(int page, int size) {
+        PageResult<Employee> result = employeeRepository.findAll(new PageQuery(page, size));
+        return PageResponse.from(result, EmployeeResponse::fromDomain);
     }
 
     public EmployeeResponse update(UUID id, EmployeeRequest request) {

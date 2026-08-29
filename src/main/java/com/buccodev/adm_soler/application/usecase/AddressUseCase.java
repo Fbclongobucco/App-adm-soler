@@ -2,12 +2,14 @@ package com.buccodev.adm_soler.application.usecase;
 
 import com.buccodev.adm_soler.application.dto.address.AddressRequest;
 import com.buccodev.adm_soler.application.dto.address.AddressResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -31,10 +33,9 @@ public class AddressUseCase {
         return AddressResponse.fromDomain(address);
     }
 
-    public List<AddressResponse> findAll() {
-        return addressRepository.findAll().stream()
-                .map(AddressResponse::fromDomain)
-                .toList();
+    public PageResponse<AddressResponse> findAll(int page, int size) {
+        PageResult<Address> result = addressRepository.findAll(new PageQuery(page, size));
+        return PageResponse.from(result, AddressResponse::fromDomain);
     }
 
     public AddressResponse update(UUID id, AddressRequest request) {

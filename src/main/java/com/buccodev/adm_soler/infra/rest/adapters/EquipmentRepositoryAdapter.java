@@ -2,13 +2,16 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Equipment;
 import com.buccodev.adm_soler.core.repository.EquipmentRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.EquipmentJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.EquipmentJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.EquipmentMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,8 +47,15 @@ public class EquipmentRepositoryAdapter implements EquipmentRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Equipment> findAll() {
-        return jpaRepository.findAll().stream().map(EquipmentMapper::toDomain).toList();
+    public PageResult<Equipment> findAll(PageQuery pageQuery) {
+        Page<EquipmentJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new PageResult<>(
+                page.getContent().stream().map(EquipmentMapper::toDomain).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @Transactional

@@ -2,13 +2,16 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Accommodation;
 import com.buccodev.adm_soler.core.repository.AccommodationRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.AccommodationJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.AccommodationJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.AccommodationMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,8 +47,15 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Accommodation> findAll() {
-        return jpaRepository.findAll().stream().map(AccommodationMapper::toDomain).toList();
+    public PageResult<Accommodation> findAll(PageQuery pageQuery) {
+        Page<AccommodationJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new PageResult<>(
+                page.getContent().stream().map(AccommodationMapper::toDomain).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @Transactional

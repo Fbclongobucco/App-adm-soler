@@ -4,8 +4,11 @@ import com.buccodev.adm_soler.application.dto.equipment.EquipmentRequest;
 import com.buccodev.adm_soler.application.dto.equipment.EquipmentResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.application.usecase.EquipmentUseCase;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.core.domain.Equipment;
 import com.buccodev.adm_soler.core.repository.EquipmentRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,11 +78,12 @@ class EquipmentUseCaseTest {
 
     @Test
     void shouldFindAll() {
-        when(equipmentRepository.findAll()).thenReturn(List.of(sampleEquipment));
+        when(equipmentRepository.findAll(any(PageQuery.class)))
+                .thenReturn(new PageResult<>(List.of(sampleEquipment), 0, 20, 1, 1));
 
-        List<EquipmentResponse> responses = equipmentUseCase.findAll();
+        PageResponse<EquipmentResponse> responses = equipmentUseCase.findAll(0, 20);
 
-        assertThat(responses).hasSize(1);
+        assertThat(responses.content()).hasSize(1);
     }
 
     @Test

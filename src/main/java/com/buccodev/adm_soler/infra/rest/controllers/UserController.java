@@ -2,13 +2,13 @@ package com.buccodev.adm_soler.infra.rest.controllers;
 
 import com.buccodev.adm_soler.application.dto.user.UserRequest;
 import com.buccodev.adm_soler.application.dto.user.UserResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.usecase.UserUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,8 +35,10 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponse>> findAll() {
-        return ResponseEntity.ok(userUseCase.findAll());
+    public ResponseEntity<PageResponse<UserResponse>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(userUseCase.findAll(page, size));
     }
 
     @PutMapping("/{id}")

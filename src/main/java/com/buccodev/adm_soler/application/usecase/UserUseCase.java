@@ -2,13 +2,15 @@ package com.buccodev.adm_soler.application.usecase;
 
 import com.buccodev.adm_soler.application.dto.user.UserRequest;
 import com.buccodev.adm_soler.application.dto.user.UserResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.User;
 import com.buccodev.adm_soler.core.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -44,10 +46,9 @@ public class UserUseCase {
         return UserResponse.fromDomain(user);
     }
 
-    public List<UserResponse> findAll() {
-        return userRepository.findAll().stream()
-                .map(UserResponse::fromDomain)
-                .toList();
+    public PageResponse<UserResponse> findAll(int page, int size) {
+        PageResult<User> result = userRepository.findAll(new PageQuery(page, size));
+        return PageResponse.from(result, UserResponse::fromDomain);
     }
 
     public UserResponse update(UUID id, UserRequest request) {

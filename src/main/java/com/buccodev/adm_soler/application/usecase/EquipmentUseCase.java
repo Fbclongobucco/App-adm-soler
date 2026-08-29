@@ -2,12 +2,14 @@ package com.buccodev.adm_soler.application.usecase;
 
 import com.buccodev.adm_soler.application.dto.equipment.EquipmentRequest;
 import com.buccodev.adm_soler.application.dto.equipment.EquipmentResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Equipment;
 import com.buccodev.adm_soler.core.repository.EquipmentRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -31,10 +33,9 @@ public class EquipmentUseCase {
         return EquipmentResponse.fromDomain(equipment);
     }
 
-    public List<EquipmentResponse> findAll() {
-        return equipmentRepository.findAll().stream()
-                .map(EquipmentResponse::fromDomain)
-                .toList();
+    public PageResponse<EquipmentResponse> findAll(int page, int size) {
+        PageResult<Equipment> result = equipmentRepository.findAll(new PageQuery(page, size));
+        return PageResponse.from(result, EquipmentResponse::fromDomain);
     }
 
     public EquipmentResponse update(UUID id, EquipmentRequest request) {

@@ -2,13 +2,16 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Employee;
 import com.buccodev.adm_soler.core.repository.EmployeeRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.EmployeeJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.EmployeeJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.EmployeeMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,8 +47,15 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Employee> findAll() {
-        return jpaRepository.findAll().stream().map(EmployeeMapper::toDomain).toList();
+    public PageResult<Employee> findAll(PageQuery pageQuery) {
+        Page<EmployeeJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new PageResult<>(
+                page.getContent().stream().map(EmployeeMapper::toDomain).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @Transactional

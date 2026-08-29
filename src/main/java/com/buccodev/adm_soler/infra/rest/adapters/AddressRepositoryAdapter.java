@@ -2,13 +2,16 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.AddressJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.AddressJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.AddressMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,8 +47,15 @@ public class AddressRepositoryAdapter implements AddressRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Address> findAll() {
-        return jpaRepository.findAll().stream().map(AddressMapper::toDomain).toList();
+    public PageResult<Address> findAll(PageQuery pageQuery) {
+        Page<AddressJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new PageResult<>(
+                page.getContent().stream().map(AddressMapper::toDomain).toList(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @Transactional

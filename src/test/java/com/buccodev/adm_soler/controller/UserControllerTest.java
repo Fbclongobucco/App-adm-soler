@@ -1,5 +1,6 @@
 package com.buccodev.adm_soler.controller;
 
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.dto.user.UserRequest;
 import com.buccodev.adm_soler.application.dto.user.UserResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -102,12 +104,13 @@ class UserControllerTest {
 
     @Test
     void shouldFindAllWhenAdmin() throws Exception {
-        when(userUseCase.findAll()).thenReturn(List.of(buildUserResponse()));
+        when(userUseCase.findAll(anyInt(), anyInt()))
+                .thenReturn(new PageResponse<>(List.of(buildUserResponse()), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/v1/users")
                         .with(SecurityMockMvcRequestPostProcessors.user("test@email.com").roles("ADMIN")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(jsonPath("$.content").isArray());
     }
 
     @Test

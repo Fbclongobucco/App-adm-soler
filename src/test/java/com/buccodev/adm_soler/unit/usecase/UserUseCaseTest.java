@@ -4,7 +4,10 @@ import com.buccodev.adm_soler.application.dto.user.UserRequest;
 import com.buccodev.adm_soler.application.dto.user.UserResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.application.usecase.UserUseCase;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.core.domain.User;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import com.buccodev.adm_soler.core.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,12 +95,13 @@ class UserUseCaseTest {
                 "0987654321", User.Role.ADMIN,
                 java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
         );
-        when(userRepository.findAll()).thenReturn(List.of(sampleUser, anotherUser));
+        when(userRepository.findAll(any(PageQuery.class)))
+                .thenReturn(new PageResult<>(List.of(sampleUser, anotherUser), 0, 20, 2, 1));
 
-        List<UserResponse> responses = userUseCase.findAll();
+        PageResponse<UserResponse> responses = userUseCase.findAll(0, 20);
 
-        assertThat(responses).hasSize(2);
-        verify(userRepository).findAll();
+        assertThat(responses.content()).hasSize(2);
+        verify(userRepository).findAll(any(PageQuery.class));
     }
 
     @Test

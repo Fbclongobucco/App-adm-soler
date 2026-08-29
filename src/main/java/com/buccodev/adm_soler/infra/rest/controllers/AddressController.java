@@ -2,13 +2,13 @@ package com.buccodev.adm_soler.infra.rest.controllers;
 
 import com.buccodev.adm_soler.application.dto.address.AddressRequest;
 import com.buccodev.adm_soler.application.dto.address.AddressResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.usecase.AddressUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -35,8 +35,10 @@ public class AddressController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER', 'FOREIGN')")
-    public ResponseEntity<List<AddressResponse>> findAll() {
-        return ResponseEntity.ok(addressUseCase.findAll());
+    public ResponseEntity<PageResponse<AddressResponse>> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(addressUseCase.findAll(page, size));
     }
 
     @PutMapping("/{id}")

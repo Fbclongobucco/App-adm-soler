@@ -2,14 +2,16 @@ package com.buccodev.adm_soler.application.usecase;
 
 import com.buccodev.adm_soler.application.dto.project.ProjectRequest;
 import com.buccodev.adm_soler.application.dto.project.ProjectResponse;
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
 import com.buccodev.adm_soler.core.domain.Client;
 import com.buccodev.adm_soler.core.domain.Project;
 import com.buccodev.adm_soler.core.repository.ClientRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
+import com.buccodev.adm_soler.core.repository.PageQuery;
+import com.buccodev.adm_soler.core.repository.PageResult;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -37,10 +39,9 @@ public class ProjectUseCase {
         return ProjectResponse.fromDomain(project);
     }
 
-    public List<ProjectResponse> findAll() {
-        return projectRepository.findAll().stream()
-                .map(ProjectResponse::fromDomain)
-                .toList();
+    public PageResponse<ProjectResponse> findAll(int page, int size) {
+        PageResult<Project> result = projectRepository.findAll(new PageQuery(page, size));
+        return PageResponse.from(result, ProjectResponse::fromDomain);
     }
 
     public ProjectResponse update(UUID id, ProjectRequest request) {

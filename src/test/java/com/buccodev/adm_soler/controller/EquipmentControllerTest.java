@@ -1,5 +1,6 @@
 package com.buccodev.adm_soler.controller;
 
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.dto.equipment.EquipmentRequest;
 import com.buccodev.adm_soler.application.dto.equipment.EquipmentResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -91,12 +93,13 @@ class EquipmentControllerTest {
 
     @Test
     void shouldFindAll() throws Exception {
-        when(equipmentUseCase.findAll()).thenReturn(List.of(buildResponse()));
+        when(equipmentUseCase.findAll(anyInt(), anyInt()))
+                .thenReturn(new PageResponse<>(List.of(buildResponse()), 0, 20, 1, 1));
 
         mockMvc.perform(get("/api/v1/equipments")
                         .with(SecurityMockMvcRequestPostProcessors.user("test@email.com").roles("ADMIN")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(jsonPath("$.content").isArray());
     }
 
     @Test
