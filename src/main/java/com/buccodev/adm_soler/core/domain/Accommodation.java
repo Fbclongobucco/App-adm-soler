@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.application.exception.BadRequestException;
+import com.buccodev.adm_soler.core.exception.DomainException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -99,7 +99,7 @@ public class Accommodation {
     public void setCapacity(Integer capacity) {
         this.capacity = validateCapacity(capacity);
         if (employees.size() > this.capacity) {
-            throw new BadRequestException("capacity cannot be less than current number of employees");
+            throw new DomainException("capacity cannot be less than current number of employees");
         }
     }
 
@@ -120,7 +120,7 @@ public class Accommodation {
     public void addEmployee(Employee employee) {
         Objects.requireNonNull(employee, "employee is required");
         if (capacity != null && employees.size() >= capacity) {
-            throw new BadRequestException("accommodation capacity exceeded: " + capacity);
+            throw new DomainException("accommodation capacity exceeded: " + capacity);
         }
         this.employees.add(employee);
     }
@@ -128,7 +128,7 @@ public class Accommodation {
     public void addAllEmployees(Collection<Employee> employees) {
         Objects.requireNonNull(employees, "employees is required");
         if (capacity != null && this.employees.size() + employees.size() > capacity) {
-            throw new BadRequestException("accommodation capacity exceeded: " + capacity);
+            throw new DomainException("accommodation capacity exceeded: " + capacity);
         }
         this.employees.addAll(employees);
     }
@@ -139,7 +139,7 @@ public class Accommodation {
 
     private Integer validateCapacity(Integer capacity) {
         if (capacity != null && capacity <= 0) {
-            throw new BadRequestException("capacity must be greater than zero");
+            throw new DomainException("capacity must be greater than zero");
         }
         return capacity;
     }
@@ -156,7 +156,7 @@ public class Accommodation {
 
     private void validateDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw new BadRequestException("startDate must be before endDate");
+            throw new DomainException("startDate must be before endDate");
         }
     }
 

@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.application.exception.BadRequestException;
+import com.buccodev.adm_soler.core.exception.DomainException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -198,7 +198,7 @@ public class Project {
     private String validateOs(String os) {
         Objects.requireNonNull(os, "os is required");
         if (os.isBlank()) {
-            throw new BadRequestException("os cannot be blank");
+            throw new DomainException("os cannot be blank");
         }
         return os;
     }
@@ -206,7 +206,7 @@ public class Project {
     private String validateServiceProvided(String serviceProvided) {
         Objects.requireNonNull(serviceProvided, "serviceProvided is required");
         if (serviceProvided.isBlank()) {
-            throw new BadRequestException("serviceProvided cannot be blank");
+            throw new DomainException("serviceProvided cannot be blank");
         }
         return serviceProvided;
     }
@@ -223,7 +223,7 @@ public class Project {
 
     private void validateDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw new BadRequestException("startDate must be before endDate");
+            throw new DomainException("startDate must be before endDate");
         }
     }
 

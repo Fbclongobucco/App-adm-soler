@@ -1,22 +1,22 @@
 package com.buccodev.adm_soler.application.usecase;
 
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.dto.restaurant.RestaurantRequest;
 import com.buccodev.adm_soler.application.dto.restaurant.RestaurantResponse;
-import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
+import com.buccodev.adm_soler.application.mapper.PageResponseMapper;
+import com.buccodev.adm_soler.application.mapper.RestaurantDtoMapper;
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.domain.Project;
 import com.buccodev.adm_soler.core.domain.Restaurant;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
-import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Component
 public class RestaurantUseCase {
 
     private final RestaurantRepository restaurantRepository;
@@ -32,46 +32,28 @@ public class RestaurantUseCase {
     }
 
     public RestaurantResponse create(RestaurantRequest request) {
-        Address address = addressRepository.findById(request.addressId())
-                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + request.addressId()));
-        Project project = projectRepository.findById(request.projectId())
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + request.projectId()));
-        Restaurant restaurant = request.toDomain(project, address);
-        Restaurant saved = restaurantRepository.save(restaurant);
-        return RestaurantResponse.fromDomain(saved);
+        Address address = findAddress(request.addressId());
+        Project project = findProject(request.projectId());
+        Restaurant saved = restaurantRepository.save(
+                RestaurantDtoMapper.toDomain(request, project, address));
+        return RestaurantDtoMapper.toResponse(saved);
     }
 
     public RestaurantResponse findById(UUID id) {
-        Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurante nao encontrado com id: " + id));
-        return RestaurantResponse.fromDomain(restaurant);
+        return RestaurantDtoMapper.toResponse(findRestaurant(id));
     }
 
     public PageResponse<RestaurantResponse> findAll(int page, int size) {
         PageResult<Restaurant> result = restaurantRepository.findAll(new PageQuery(page, size));
-        return PageResponse.from(result, RestaurantResponse::fromDomain);
+        return PageResponseMapper.toResponse(result, RestaurantDtoMapper::toResponse);
     }
 
     public RestaurantResponse update(UUID id, RestaurantRequest request) {
-        Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurante nao encontrado com id: " + id));
-        Address address = addressRepository.findById(request.addressId())
-                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + request.addressId()));
-        Project project = projectRepository.findById(request.projectId())
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + request.projectId()));
-        restaurant.setName(request.name());
-        restaurant.setEmail(request.email());
-        restaurant.setPhone(request.phone());
-        restaurant.setCnpj(request.cnpj());
-        restaurant.setProject(project);
-        restaurant.setIsBilled(request.isBilled());
-        restaurant.setLunchPrice(request.lunchPrice());
-        restaurant.setDinnerPrice(request.dinnerPrice());
-        restaurant.setAdditionalValues(request.additionalValues());
-        restaurant.setDays(request.days());
-        restaurant.setAddress(address);
-        Restaurant updated = restaurantRepository.save(restaurant);
-        return RestaurantResponse.fromDomain(updated);
+        Restaurant restaurant = findRestaurant(id);
+        Address address = findAddress(request.addressId());
+        Project project = findProject(request.projectId());
+        RestaurantDtoMapper.applyTo(restaurant, request, project, address);
+        return RestaurantDtoMapper.toResponse(restaurantRepository.save(restaurant));
     }
 
     public void delete(UUID id) {
@@ -79,5 +61,20 @@ public class RestaurantUseCase {
             throw new ResourceNotFoundException("Restaurante nao encontrado com id: " + id);
         }
         restaurantRepository.deleteById(id);
+    }
+
+    private Restaurant findRestaurant(UUID id) {
+        return restaurantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurante nao encontrado com id: " + id));
+    }
+
+    private Address findAddress(UUID addressId) {
+        return addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + addressId));
+    }
+
+    private Project findProject(UUID projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + projectId));
     }
 }

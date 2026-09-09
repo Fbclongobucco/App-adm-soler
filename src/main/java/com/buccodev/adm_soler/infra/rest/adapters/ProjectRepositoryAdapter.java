@@ -2,8 +2,8 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Project;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.ProjectJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.ProjectJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.ProjectMapper;
@@ -39,7 +39,7 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     @Transactional(readOnly = true)
     @Override
     public Optional<Project> findById(UUID id) {
-        return jpaRepository.findById(id).map(jpa -> {
+        return jpaRepository.findByIdWithRelations(id).map(jpa -> {
             jpa.markAsExisting();
             return ProjectMapper.toDomain(jpa);
         });
@@ -48,7 +48,7 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     @Transactional(readOnly = true)
     @Override
     public PageResult<Project> findAll(PageQuery pageQuery) {
-        Page<ProjectJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        Page<ProjectJpa> page = jpaRepository.findAllWithRelations(PageRequest.of(pageQuery.page(), pageQuery.size()));
         return new PageResult<>(
                 page.getContent().stream().map(ProjectMapper::toDomain).toList(),
                 page.getNumber(),

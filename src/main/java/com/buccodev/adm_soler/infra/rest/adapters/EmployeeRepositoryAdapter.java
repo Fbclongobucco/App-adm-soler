@@ -2,8 +2,8 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Employee;
 import com.buccodev.adm_soler.core.repository.EmployeeRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.EmployeeJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.EmployeeJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.EmployeeMapper;
@@ -39,7 +39,7 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
     @Transactional(readOnly = true)
     @Override
     public Optional<Employee> findById(UUID id) {
-        return jpaRepository.findById(id).map(jpa -> {
+        return jpaRepository.findByIdWithRelations(id).map(jpa -> {
             jpa.markAsExisting();
             return EmployeeMapper.toDomain(jpa);
         });
@@ -48,7 +48,7 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
     @Transactional(readOnly = true)
     @Override
     public PageResult<Employee> findAll(PageQuery pageQuery) {
-        Page<EmployeeJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        Page<EmployeeJpa> page = jpaRepository.findAllWithRelations(PageRequest.of(pageQuery.page(), pageQuery.size()));
         return new PageResult<>(
                 page.getContent().stream().map(EmployeeMapper::toDomain).toList(),
                 page.getNumber(),

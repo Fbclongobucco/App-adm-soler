@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.application.exception.BadRequestException;
+import com.buccodev.adm_soler.core.exception.DomainException;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -126,28 +126,28 @@ public class Client {
     private String validateName(String name) {
         Objects.requireNonNull(name, "name is required");
         if (name.isBlank()) {
-            throw new BadRequestException("name cannot be blank");
+            throw new DomainException("name cannot be blank");
         }
         return name;
     }
 
     private String validateEmail(String email) {
         if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new BadRequestException("invalid email format");
+            throw new DomainException("invalid email format");
         }
         return email;
     }
 
     private String validatePhone(String phone) {
         if (phone != null && !PHONE_PATTERN.matcher(phone).matches()) {
-            throw new BadRequestException("invalid phone format");
+            throw new DomainException("invalid phone format");
         }
         return phone;
     }
 
     private String validateCnpj(String cnpj) {
         if (cnpj != null && !CNPJ_PATTERN.matcher(cnpj).matches()) {
-            throw new BadRequestException("invalid CNPJ format");
+            throw new DomainException("invalid CNPJ format");
         }
         return cnpj;
     }

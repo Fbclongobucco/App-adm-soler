@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.application.exception.BadRequestException;
+import com.buccodev.adm_soler.core.exception.DomainException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -133,7 +133,7 @@ public class Address {
     private String validateStreet(String street) {
         Objects.requireNonNull(street, "street is required");
         if (street.isBlank()) {
-            throw new BadRequestException("street cannot be blank");
+            throw new DomainException("street cannot be blank");
         }
         return street;
     }
@@ -141,7 +141,7 @@ public class Address {
     private String validateCity(String city) {
         Objects.requireNonNull(city, "city is required");
         if (city.isBlank()) {
-            throw new BadRequestException("city cannot be blank");
+            throw new DomainException("city cannot be blank");
         }
         return city;
     }
@@ -149,7 +149,7 @@ public class Address {
     private String validateState(String state) {
         Objects.requireNonNull(state, "state is required");
         if (state.isBlank()) {
-            throw new BadRequestException("state cannot be blank");
+            throw new DomainException("state cannot be blank");
         }
         return state;
     }
@@ -157,7 +157,7 @@ public class Address {
     private String validateZipCode(String zipCode) {
         Objects.requireNonNull(zipCode, "zipCode is required");
         if (zipCode.isBlank()) {
-            throw new BadRequestException("zipCode cannot be blank");
+            throw new DomainException("zipCode cannot be blank");
         }
         return zipCode;
     }
@@ -165,7 +165,7 @@ public class Address {
     private String validateCountry(String country) {
         Objects.requireNonNull(country, "country is required");
         if (country.isBlank()) {
-            throw new BadRequestException("country cannot be blank");
+            throw new DomainException("country cannot be blank");
         }
         return country;
     }

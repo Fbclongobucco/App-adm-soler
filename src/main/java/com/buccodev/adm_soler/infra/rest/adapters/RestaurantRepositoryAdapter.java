@@ -2,8 +2,8 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Restaurant;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.RestaurantJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.RestaurantJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.RestaurantMapper;
@@ -39,7 +39,7 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
     @Transactional(readOnly = true)
     @Override
     public Optional<Restaurant> findById(UUID id) {
-        return jpaRepository.findById(id).map(jpa -> {
+        return jpaRepository.findByIdWithRelations(id).map(jpa -> {
             jpa.markAsExisting();
             return RestaurantMapper.toDomain(jpa);
         });
@@ -48,7 +48,7 @@ public class RestaurantRepositoryAdapter implements RestaurantRepository {
     @Transactional(readOnly = true)
     @Override
     public PageResult<Restaurant> findAll(PageQuery pageQuery) {
-        Page<RestaurantJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        Page<RestaurantJpa> page = jpaRepository.findAllWithRelations(PageRequest.of(pageQuery.page(), pageQuery.size()));
         return new PageResult<>(
                 page.getContent().stream().map(RestaurantMapper::toDomain).toList(),
                 page.getNumber(),

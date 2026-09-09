@@ -2,8 +2,8 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Accommodation;
 import com.buccodev.adm_soler.core.repository.AccommodationRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.AccommodationJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.AccommodationJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.AccommodationMapper;
@@ -39,7 +39,7 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
     @Transactional(readOnly = true)
     @Override
     public Optional<Accommodation> findById(UUID id) {
-        return jpaRepository.findById(id).map(jpa -> {
+        return jpaRepository.findByIdWithRelations(id).map(jpa -> {
             jpa.markAsExisting();
             return AccommodationMapper.toDomain(jpa);
         });
@@ -48,7 +48,7 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
     @Transactional(readOnly = true)
     @Override
     public PageResult<Accommodation> findAll(PageQuery pageQuery) {
-        Page<AccommodationJpa> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        Page<AccommodationJpa> page = jpaRepository.findAllWithRelations(PageRequest.of(pageQuery.page(), pageQuery.size()));
         return new PageResult<>(
                 page.getContent().stream().map(AccommodationMapper::toDomain).toList(),
                 page.getNumber(),

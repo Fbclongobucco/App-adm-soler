@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.core.repository;
+package com.buccodev.adm_soler.core.pagination;
 
 public record PageQuery(int page, int size) {
     public PageQuery {

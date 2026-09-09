@@ -39,17 +39,29 @@ public class JwtService {
     }
 
     public String generateAccessToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails, accessTokenExpiration);
+        return generateAccessToken(userDetails.getUsername());
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails, refreshTokenExpiration);
+        return generateRefreshToken(userDetails.getUsername());
+    }
+
+    public String generateAccessToken(String subject) {
+        return generateToken(new HashMap<>(), subject, accessTokenExpiration);
+    }
+
+    public String generateRefreshToken(String subject) {
+        return generateToken(new HashMap<>(), subject, refreshTokenExpiration);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
+        return generateToken(extraClaims, userDetails.getUsername(), expiration);
+    }
+
+    public String generateToken(Map<String, Object> extraClaims, String subject, long expiration) {
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())
@@ -57,8 +69,12 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
+        return isTokenValid(token, userDetails.getUsername());
+    }
+
+    public boolean isTokenValid(String token, String subject) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return username.equals(subject) && !isTokenExpired(token);
     }
 
     public boolean isTokenExpired(String token) {

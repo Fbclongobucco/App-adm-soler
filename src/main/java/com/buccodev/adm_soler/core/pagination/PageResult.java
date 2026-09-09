@@ -1,4 +1,4 @@
-package com.buccodev.adm_soler.core.repository;
+package com.buccodev.adm_soler.core.pagination;
 
 import java.util.List;
 

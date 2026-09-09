@@ -2,8 +2,8 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.AddressJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.AddressJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.AddressMapper;

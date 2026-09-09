@@ -2,8 +2,8 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.User;
 import com.buccodev.adm_soler.core.repository.UserRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.UserJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.UserJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.UserMapper;

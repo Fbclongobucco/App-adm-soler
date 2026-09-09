@@ -2,8 +2,8 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Equipment;
 import com.buccodev.adm_soler.core.repository.EquipmentRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.infra.rest.entities.EquipmentJpa;
 import com.buccodev.adm_soler.infra.rest.jpa_repositories.EquipmentJpaRepository;
 import com.buccodev.adm_soler.infra.rest.mappers.EquipmentMapper;

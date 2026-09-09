@@ -1,22 +1,22 @@
 package com.buccodev.adm_soler.application.usecase;
 
+import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.dto.accommodation.AccommodationRequest;
 import com.buccodev.adm_soler.application.dto.accommodation.AccommodationResponse;
-import com.buccodev.adm_soler.application.dto.PageResponse;
 import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
+import com.buccodev.adm_soler.application.mapper.AccommodationDtoMapper;
+import com.buccodev.adm_soler.application.mapper.PageResponseMapper;
 import com.buccodev.adm_soler.core.domain.Accommodation;
 import com.buccodev.adm_soler.core.domain.Address;
 import com.buccodev.adm_soler.core.domain.Project;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.core.repository.AccommodationRepository;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
-import com.buccodev.adm_soler.core.repository.PageQuery;
-import com.buccodev.adm_soler.core.repository.PageResult;
-import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Component
 public class AccommodationUseCase {
 
     private final AccommodationRepository accommodationRepository;
@@ -32,37 +32,27 @@ public class AccommodationUseCase {
     }
 
     public AccommodationResponse create(AccommodationRequest request) {
-        Address address = addressRepository.findById(request.addressId())
-                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + request.addressId()));
-        Project project = projectRepository.findById(request.projectId())
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + request.projectId()));
-        Accommodation accommodation = request.toDomain(address, project);
-        Accommodation saved = accommodationRepository.save(accommodation);
-        return AccommodationResponse.fromDomain(saved);
+        Address address = findAddress(request.addressId());
+        Project project = findProject(request.projectId());
+        Accommodation saved = accommodationRepository.save(
+                AccommodationDtoMapper.toDomain(request, address, project));
+        return AccommodationDtoMapper.toResponse(saved);
     }
 
     public AccommodationResponse findById(UUID id) {
-        Accommodation accommodation = accommodationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Acomodacao nao encontrada com id: " + id));
-        return AccommodationResponse.fromDomain(accommodation);
+        return AccommodationDtoMapper.toResponse(findAccommodation(id));
     }
 
     public PageResponse<AccommodationResponse> findAll(int page, int size) {
         PageResult<Accommodation> result = accommodationRepository.findAll(new PageQuery(page, size));
-        return PageResponse.from(result, AccommodationResponse::fromDomain);
+        return PageResponseMapper.toResponse(result, AccommodationDtoMapper::toResponse);
     }
 
     public AccommodationResponse update(UUID id, AccommodationRequest request) {
-        Accommodation accommodation = accommodationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Acomodacao nao encontrada com id: " + id));
-        Address address = addressRepository.findById(request.addressId())
-                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + request.addressId()));
-        accommodation.setAddress(address);
-        accommodation.setCapacity(request.capacity());
-        accommodation.setStartDate(request.startDate());
-        accommodation.setEndDate(request.endDate());
-        Accommodation updated = accommodationRepository.save(accommodation);
-        return AccommodationResponse.fromDomain(updated);
+        Accommodation accommodation = findAccommodation(id);
+        Address address = findAddress(request.addressId());
+        AccommodationDtoMapper.applyTo(accommodation, request, address);
+        return AccommodationDtoMapper.toResponse(accommodationRepository.save(accommodation));
     }
 
     public void delete(UUID id) {
@@ -70,5 +60,20 @@ public class AccommodationUseCase {
             throw new ResourceNotFoundException("Acomodacao nao encontrada com id: " + id);
         }
         accommodationRepository.deleteById(id);
+    }
+
+    private Accommodation findAccommodation(UUID id) {
+        return accommodationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Acomodacao nao encontrada com id: " + id));
+    }
+
+    private Address findAddress(UUID addressId) {
+        return addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + addressId));
+    }
+
+    private Project findProject(UUID projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + projectId));
     }
 }

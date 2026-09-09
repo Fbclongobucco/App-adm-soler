@@ -6,53 +6,45 @@ import com.buccodev.adm_soler.application.dto.auth.RefreshTokenRequest;
 import com.buccodev.adm_soler.application.dto.auth.RegisterRequest;
 import com.buccodev.adm_soler.application.exception.AuthenticationException;
 import com.buccodev.adm_soler.application.exception.BadRequestException;
+import com.buccodev.adm_soler.application.gateway.AuthenticationGatewayPort;
+import com.buccodev.adm_soler.application.gateway.PasswordEncoderPort;
+import com.buccodev.adm_soler.application.gateway.TokenProviderPort;
 import com.buccodev.adm_soler.application.usecase.AuthUseCase;
 import com.buccodev.adm_soler.core.domain.User;
 import com.buccodev.adm_soler.core.repository.UserRepository;
-import com.buccodev.adm_soler.infra.security.CustomUserDetailsService;
-import com.buccodev.adm_soler.infra.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthUseCaseTest {
 
     @Mock
-    private AuthenticationManager authenticationManager;
+    private AuthenticationGatewayPort authenticationGateway;
 
     @Mock
-    private JwtService jwtService;
-
-    @Mock
-    private CustomUserDetailsService customUserDetailsService;
+    private TokenProviderPort tokenProvider;
 
     @Mock
     private UserRepository userRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoderPort passwordEncoder;
 
     @InjectMocks
     private AuthUseCase authUseCase;
 
     private User sampleUser;
-    private UserDetails sampleUserDetails;
 
     @BeforeEach
     void setUp() {
@@ -66,9 +58,6 @@ class AuthUseCaseTest {
                 java.time.LocalDateTime.now(),
                 java.time.LocalDateTime.now()
         );
-
-        sampleUserDetails = new org.springframework.security.core.userdetails.User(
-                "joao@email.com", "encodedPass123", Collections.emptyList());
     }
 
     @Test
@@ -76,9 +65,8 @@ class AuthUseCaseTest {
         AuthRequest request = new AuthRequest("joao@email.com", "password123");
 
         when(userRepository.findByEmail("joao@email.com")).thenReturn(Optional.of(sampleUser));
-        when(customUserDetailsService.loadUserByUsername("joao@email.com")).thenReturn(sampleUserDetails);
-        when(jwtService.generateAccessToken(sampleUserDetails)).thenReturn("access-token-123");
-        when(jwtService.generateRefreshToken(sampleUserDetails)).thenReturn("refresh-token-123");
+        when(tokenProvider.generateAccessToken("joao@email.com")).thenReturn("access-token-123");
+        when(tokenProvider.generateRefreshToken("joao@email.com")).thenReturn("refresh-token-123");
 
         AuthResponse response = authUseCase.login(request);
 
@@ -86,28 +74,40 @@ class AuthUseCaseTest {
         assertThat(response.refreshToken()).isEqualTo("refresh-token-123");
         assertThat(response.email()).isEqualTo("joao@email.com");
         assertThat(response.name()).isEqualTo("Joao Silva");
-        verify(authenticationManager).authenticate(any());
+        verify(authenticationGateway).authenticate("joao@email.com", "password123");
     }
 
     @Test
     void shouldThrowWhenLoginWithInvalidCredentials() {
         AuthRequest request = new AuthRequest("joao@email.com", "wrongpassword");
-        when(authenticationManager.authenticate(any()))
-                .thenThrow(new org.springframework.security.authentication.BadCredentialsException("Bad credentials"));
+        doThrow(new AuthenticationException("Invalid email or password"))
+                .when(authenticationGateway).authenticate("joao@email.com", "wrongpassword");
 
         assertThatThrownBy(() -> authUseCase.login(request))
-                .isInstanceOf(org.springframework.security.authentication.BadCredentialsException.class);
+                .isInstanceOf(AuthenticationException.class)
+                .hasMessage("Invalid email or password");
+
+        verifyNoInteractions(tokenProvider);
+    }
+
+    @Test
+    void shouldThrowWhenLoginUserIsMissing() {
+        AuthRequest request = new AuthRequest("joao@email.com", "password123");
+        when(userRepository.findByEmail("joao@email.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authUseCase.login(request))
+                .isInstanceOf(AuthenticationException.class)
+                .hasMessage("User not found");
     }
 
     @Test
     void shouldRefreshToken() {
         RefreshTokenRequest request = new RefreshTokenRequest("valid-refresh-token");
-        when(jwtService.extractUsername("valid-refresh-token")).thenReturn("joao@email.com");
-        when(customUserDetailsService.loadUserByUsername("joao@email.com")).thenReturn(sampleUserDetails);
-        when(jwtService.isTokenValid("valid-refresh-token", sampleUserDetails)).thenReturn(true);
+        when(tokenProvider.extractSubject("valid-refresh-token")).thenReturn("joao@email.com");
+        when(tokenProvider.isTokenValid("valid-refresh-token", "joao@email.com")).thenReturn(true);
         when(userRepository.findByEmail("joao@email.com")).thenReturn(Optional.of(sampleUser));
-        when(jwtService.generateAccessToken(sampleUserDetails)).thenReturn("new-access-token");
-        when(jwtService.generateRefreshToken(sampleUserDetails)).thenReturn("new-refresh-token");
+        when(tokenProvider.generateAccessToken("joao@email.com")).thenReturn("new-access-token");
+        when(tokenProvider.generateRefreshToken("joao@email.com")).thenReturn("new-refresh-token");
 
         AuthResponse response = authUseCase.refreshToken(request);
 
@@ -118,7 +118,7 @@ class AuthUseCaseTest {
     @Test
     void shouldThrowWhenRefreshWithInvalidToken() {
         RefreshTokenRequest request = new RefreshTokenRequest("invalid-token");
-        when(jwtService.extractUsername("invalid-token")).thenReturn(null);
+        when(tokenProvider.extractSubject("invalid-token")).thenReturn(null);
 
         assertThatThrownBy(() -> authUseCase.refreshToken(request))
                 .isInstanceOf(AuthenticationException.class)
@@ -128,9 +128,8 @@ class AuthUseCaseTest {
     @Test
     void shouldThrowWhenRefreshWithExpiredToken() {
         RefreshTokenRequest request = new RefreshTokenRequest("expired-token");
-        when(jwtService.extractUsername("expired-token")).thenReturn("joao@email.com");
-        when(customUserDetailsService.loadUserByUsername("joao@email.com")).thenReturn(sampleUserDetails);
-        when(jwtService.isTokenValid("expired-token", sampleUserDetails)).thenReturn(false);
+        when(tokenProvider.extractSubject("expired-token")).thenReturn("joao@email.com");
+        when(tokenProvider.isTokenValid("expired-token", "joao@email.com")).thenReturn(false);
 
         assertThatThrownBy(() -> authUseCase.refreshToken(request))
                 .isInstanceOf(AuthenticationException.class)
@@ -143,15 +142,30 @@ class AuthUseCaseTest {
         when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("encodedPassword123");
         when(userRepository.save(any(User.class))).thenReturn(sampleUser);
-        when(customUserDetailsService.loadUserByUsername("joao@email.com")).thenReturn(sampleUserDetails);
-        when(jwtService.generateAccessToken(sampleUserDetails)).thenReturn("access-token");
-        when(jwtService.generateRefreshToken(sampleUserDetails)).thenReturn("refresh-token");
+        when(tokenProvider.generateAccessToken("joao@email.com")).thenReturn("access-token");
+        when(tokenProvider.generateRefreshToken("joao@email.com")).thenReturn("refresh-token");
 
         AuthResponse response = authUseCase.register(request);
 
         assertThat(response.email()).isEqualTo("joao@email.com");
         assertThat(response.accessToken()).isEqualTo("access-token");
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void shouldPersistEncodedPasswordOnRegister() {
+        RegisterRequest request = new RegisterRequest("Joao", "joao@email.com", "password123", "1234567890");
+        when(userRepository.existsByEmail("joao@email.com")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("encodedPassword123");
+        when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+        when(tokenProvider.generateAccessToken("joao@email.com")).thenReturn("access-token");
+        when(tokenProvider.generateRefreshToken("joao@email.com")).thenReturn("refresh-token");
+
+        authUseCase.register(request);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(captor.capture());
+        assertThat(captor.getValue().getPassword()).isEqualTo("encodedPassword123");
     }
 
     @Test

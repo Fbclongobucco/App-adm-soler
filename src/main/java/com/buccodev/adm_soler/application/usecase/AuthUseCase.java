@@ -6,89 +6,47 @@ import com.buccodev.adm_soler.application.dto.auth.RefreshTokenRequest;
 import com.buccodev.adm_soler.application.dto.auth.RegisterRequest;
 import com.buccodev.adm_soler.application.exception.AuthenticationException;
 import com.buccodev.adm_soler.application.exception.BadRequestException;
+import com.buccodev.adm_soler.application.gateway.AuthenticationGatewayPort;
+import com.buccodev.adm_soler.application.gateway.PasswordEncoderPort;
+import com.buccodev.adm_soler.application.gateway.TokenProviderPort;
+import com.buccodev.adm_soler.application.mapper.AuthDtoMapper;
 import com.buccodev.adm_soler.core.domain.User;
 import com.buccodev.adm_soler.core.repository.UserRepository;
-import com.buccodev.adm_soler.infra.security.CustomUserDetailsService;
-import com.buccodev.adm_soler.infra.security.JwtService;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-@Component
 public class AuthUseCase {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final AuthenticationGatewayPort authenticationGateway;
+    private final TokenProviderPort tokenProvider;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoderPort passwordEncoder;
 
-    public AuthUseCase(AuthenticationManager authenticationManager,
-                       JwtService jwtService,
-                       CustomUserDetailsService customUserDetailsService,
+    public AuthUseCase(AuthenticationGatewayPort authenticationGateway,
+                       TokenProviderPort tokenProvider,
                        UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
-        this.customUserDetailsService = customUserDetailsService;
+                       PasswordEncoderPort passwordEncoder) {
+        this.authenticationGateway = authenticationGateway;
+        this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     public AuthResponse login(AuthRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.password())
-        );
-
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(request.email());
-        User user = findUserByEmail(request.email());
-
-        String accessToken = jwtService.generateAccessToken(userDetails);
-        String refreshToken = jwtService.generateRefreshToken(userDetails);
-
-        return new AuthResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole(),
-                accessToken,
-                refreshToken
-        );
+        authenticationGateway.authenticate(request.email(), request.password());
+        return issueTokens(findUserByEmail(request.email()));
     }
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.refreshToken();
-        String userEmail;
-        try {
-            userEmail = jwtService.extractUsername(refreshToken);
-        } catch (Exception e) {
+        String email = tokenProvider.extractSubject(refreshToken);
+
+        if (email == null) {
             throw new AuthenticationException("Invalid refresh token");
         }
-
-        if (userEmail == null) {
-            throw new AuthenticationException("Invalid refresh token");
-        }
-
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(userEmail);
-
-        if (!jwtService.isTokenValid(refreshToken, userDetails)) {
+        if (!tokenProvider.isTokenValid(refreshToken, email)) {
             throw new AuthenticationException("Invalid or expired refresh token");
         }
 
-        User user = findUserByEmail(userEmail);
-        String newAccessToken = jwtService.generateAccessToken(userDetails);
-        String newRefreshToken = jwtService.generateRefreshToken(userDetails);
-
-        return new AuthResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getRole(),
-                newAccessToken,
-                newRefreshToken
-        );
+        return issueTokens(findUserByEmail(email));
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -96,21 +54,17 @@ public class AuthUseCase {
             throw new BadRequestException("Email already in use: " + request.email());
         }
 
-        String encodedPassword = passwordEncoder.encode(request.password());
-        User user = User.create(request.name(), request.email(), encodedPassword, request.phone());
-        User saved = userRepository.save(user);
+        User user = AuthDtoMapper.toDomain(request);
+        user.setPassword(passwordEncoder.encode(request.password()));
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(saved.getEmail());
-        String accessToken = jwtService.generateAccessToken(userDetails);
-        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        return issueTokens(userRepository.save(user));
+    }
 
-        return new AuthResponse(
-                saved.getId(),
-                saved.getName(),
-                saved.getEmail(),
-                saved.getRole(),
-                accessToken,
-                refreshToken
+    private AuthResponse issueTokens(User user) {
+        return AuthDtoMapper.toResponse(
+                user,
+                tokenProvider.generateAccessToken(user.getEmail()),
+                tokenProvider.generateRefreshToken(user.getEmail())
         );
     }
 

@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.application.exception.BadRequestException;
+import com.buccodev.adm_soler.core.exception.DomainException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -68,7 +68,7 @@ public class Equipment {
     private String validateName(String name) {
         Objects.requireNonNull(name, "name is required");
         if (name.isBlank()) {
-            throw new BadRequestException("name cannot be blank");
+            throw new DomainException("name cannot be blank");
         }
         return name;
     }

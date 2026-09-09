@@ -1,6 +1,8 @@
 package com.buccodev.adm_soler.core.repository;
 
 import com.buccodev.adm_soler.core.domain.Project;
+import com.buccodev.adm_soler.core.pagination.PageQuery;
+import com.buccodev.adm_soler.core.pagination.PageResult;
 
 import java.util.Optional;
 import java.util.UUID;
