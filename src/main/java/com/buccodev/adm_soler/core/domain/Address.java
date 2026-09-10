@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.DomainException;
+import com.buccodev.adm_soler.core.exception.InvalidAddressException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -23,22 +23,23 @@ public class Address {
     private Address(UUID id, String street, String number, String complement, String neighborhood,
                     String city, String state, String zipCode, String country,
                     LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = Objects.requireNonNull(id, "id is required");
-        this.street = validateStreet(street);
+        validate(street, city, state, zipCode, country);
+        this.id = id;
+        this.street = street;
         this.number = number;
         this.complement = complement;
         this.neighborhood = neighborhood;
-        this.city = validateCity(city);
-        this.state = validateState(state);
-        this.zipCode = validateZipCode(zipCode);
-        this.country = validateCountry(country);
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        this.city = city;
+        this.state = state;
+        this.zipCode = zipCode;
+        this.country = country;
+        this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     public static Address create(String street, String number, String complement, String neighborhood,
                                  String city, String state, String zipCode, String country) {
-        var now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
         return new Address(UUID.randomUUID(), street, number, complement, neighborhood,
                 city, state, zipCode, country, now, now);
     }
@@ -48,6 +49,20 @@ public class Address {
                                   String country, LocalDateTime createdAt, LocalDateTime updatedAt) {
         return new Address(id, street, number, complement, neighborhood, city, state, zipCode,
                 country, createdAt, updatedAt);
+    }
+
+    public void update(String street, String number, String complement, String neighborhood,
+                       String city, String state, String zipCode, String country) {
+        validate(street, city, state, zipCode, country);
+        this.street = street;
+        this.number = number;
+        this.complement = complement;
+        this.neighborhood = neighborhood;
+        this.city = city;
+        this.state = state;
+        this.zipCode = zipCode;
+        this.country = country;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public UUID getId() {
@@ -94,85 +109,30 @@ public class Address {
         return updatedAt;
     }
 
-    public void setStreet(String street) {
-        this.street = validateStreet(street);
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public void setComplement(String complement) {
-        this.complement = complement;
-    }
-
-    public void setNeighborhood(String neighborhood) {
-        this.neighborhood = neighborhood;
-    }
-
-    public void setCity(String city) {
-        this.city = validateCity(city);
-    }
-
-    public void setState(String state) {
-        this.state = validateState(state);
-    }
-
-    public void setZipCode(String zipCode) {
-        this.zipCode = validateZipCode(zipCode);
-    }
-
-    public void setCountry(String country) {
-        this.country = validateCountry(country);
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    private String validateStreet(String street) {
-        Objects.requireNonNull(street, "street is required");
-        if (street.isBlank()) {
-            throw new DomainException("street cannot be blank");
+    private static void validate(String street, String city, String state, String zipCode, String country) {
+        if (isBlank(street)) {
+            throw InvalidAddressException.blankStreet();
         }
-        return street;
+        if (isBlank(city)) {
+            throw InvalidAddressException.blankCity();
+        }
+        if (isBlank(state)) {
+            throw InvalidAddressException.blankState();
+        }
+        if (isBlank(zipCode)) {
+            throw InvalidAddressException.blankZipCode();
+        }
+        if (isBlank(country)) {
+            throw InvalidAddressException.blankCountry();
+        }
     }
 
-    private String validateCity(String city) {
-        Objects.requireNonNull(city, "city is required");
-        if (city.isBlank()) {
-            throw new DomainException("city cannot be blank");
-        }
-        return city;
-    }
-
-    private String validateState(String state) {
-        Objects.requireNonNull(state, "state is required");
-        if (state.isBlank()) {
-            throw new DomainException("state cannot be blank");
-        }
-        return state;
-    }
-
-    private String validateZipCode(String zipCode) {
-        Objects.requireNonNull(zipCode, "zipCode is required");
-        if (zipCode.isBlank()) {
-            throw new DomainException("zipCode cannot be blank");
-        }
-        return zipCode;
-    }
-
-    private String validateCountry(String country) {
-        Objects.requireNonNull(country, "country is required");
-        if (country.isBlank()) {
-            throw new DomainException("country cannot be blank");
-        }
-        return country;
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Address address = (Address) o;
         return Objects.equals(id, address.id);
@@ -180,6 +140,6 @@ public class Address {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hashCode(id);
     }
 }

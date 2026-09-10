@@ -2,15 +2,12 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Employee;
 import com.buccodev.adm_soler.core.repository.EmployeeRepository;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
-import com.buccodev.adm_soler.infra.rest.entities.EmployeeJpa;
-import com.buccodev.adm_soler.infra.rest.jpa_repositories.EmployeeJpaRepository;
-import com.buccodev.adm_soler.infra.rest.mappers.EmployeeMapper;
+import com.buccodev.adm_soler.core.repository.Repository;
+import com.buccodev.adm_soler.infra.rest.entities.EmployeeEntity;
+import com.buccodev.adm_soler.infra.rest.jpa_repository.EmployeeJpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,48 +21,58 @@ public class EmployeeRepositoryAdapter implements EmployeeRepository {
         this.jpaRepository = jpaRepository;
     }
 
-    @Transactional
     @Override
     public Employee save(Employee employee) {
-        EmployeeJpa jpa = EmployeeMapper.toJpa(employee);
-        if (jpaRepository.existsById(jpa.getId())) {
-            jpa.markAsExisting();
-        }
-        EmployeeJpa saved = jpaRepository.save(jpa);
-        saved.markAsExisting();
-        return EmployeeMapper.toDomain(saved);
+        return toDomain(jpaRepository.save(toEntity(employee)));
     }
 
-    @Transactional(readOnly = true)
     @Override
     public Optional<Employee> findById(UUID id) {
-        return jpaRepository.findByIdWithRelations(id).map(jpa -> {
-            jpa.markAsExisting();
-            return EmployeeMapper.toDomain(jpa);
-        });
+        return jpaRepository.findById(id).map(EmployeeRepositoryAdapter::toDomain);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public PageResult<Employee> findAll(PageQuery pageQuery) {
-        Page<EmployeeJpa> page = jpaRepository.findAllWithRelations(PageRequest.of(pageQuery.page(), pageQuery.size()));
-        return new PageResult<>(
-                page.getContent().stream().map(EmployeeMapper::toDomain).toList(),
+    public Repository.PageResult<Employee> findAll(Repository.PageQuery pageQuery) {
+        Page<EmployeeEntity> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new Repository.PageResult<>(
+                page.getContent().stream().map(EmployeeRepositoryAdapter::toDomain).toList(),
                 page.getNumber(),
                 page.getSize(),
                 page.getTotalElements(),
-                page.getTotalPages()
-        );
+                page.getTotalPages());
     }
 
-    @Transactional
     @Override
-    public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+    public void delete(Employee employee) {
+        jpaRepository.deleteById(employee.getId());
     }
 
     @Override
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);
+    }
+
+    static EmployeeEntity toEntity(Employee employee) {
+        return new EmployeeEntity(
+                employee.getId(),
+                employee.getName(),
+                employee.getEmail(),
+                employee.getPhone(),
+                employee.getAddressId(),
+                employee.getRole(),
+                employee.getCreatedAt(),
+                employee.getUpdatedAt());
+    }
+
+    static Employee toDomain(EmployeeEntity entity) {
+        return Employee.restore(
+                entity.getId(),
+                entity.getName(),
+                entity.getEmail(),
+                entity.getPhone(),
+                entity.getAddressId(),
+                entity.getRole(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

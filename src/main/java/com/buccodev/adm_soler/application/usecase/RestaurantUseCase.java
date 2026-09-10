@@ -1,23 +1,28 @@
 package com.buccodev.adm_soler.application.usecase;
 
-import com.buccodev.adm_soler.application.dto.PageResponse;
-import com.buccodev.adm_soler.application.dto.restaurant.RestaurantRequest;
-import com.buccodev.adm_soler.application.dto.restaurant.RestaurantResponse;
-import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
-import com.buccodev.adm_soler.application.mapper.PageResponseMapper;
-import com.buccodev.adm_soler.application.mapper.RestaurantDtoMapper;
-import com.buccodev.adm_soler.core.domain.Address;
-import com.buccodev.adm_soler.core.domain.Project;
+import com.buccodev.adm_soler.application.dto.PageResponseDto;
+import com.buccodev.adm_soler.application.dto.restaurant.RestaurantRequestDto;
+import com.buccodev.adm_soler.application.dto.restaurant.RestaurantResponseDto;
+import com.buccodev.adm_soler.application.exception.AddressNotFoundException;
+import com.buccodev.adm_soler.application.exception.ProjectNotFoundException;
+import com.buccodev.adm_soler.application.exception.RestaurantNotFoundException;
+import com.buccodev.adm_soler.application.mapper.PageMapper;
+import com.buccodev.adm_soler.application.mapper.RestaurantMapper;
 import com.buccodev.adm_soler.core.domain.Restaurant;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
+import com.buccodev.adm_soler.core.repository.Repository;
 import com.buccodev.adm_soler.core.repository.RestaurantRepository;
 
 import java.util.UUID;
 
 public class RestaurantUseCase {
+
+    /**
+     * Ainda nao existe alocacao de funcionario a restaurante na API, entao o rateio
+     * sai zerado. Quando o vinculo existir, a contagem vem do repositorio.
+     */
+    private static final int NO_EMPLOYEES_ASSIGNED = 0;
 
     private final RestaurantRepository restaurantRepository;
     private final AddressRepository addressRepository;
@@ -31,50 +36,54 @@ public class RestaurantUseCase {
         this.projectRepository = projectRepository;
     }
 
-    public RestaurantResponse create(RestaurantRequest request) {
-        Address address = findAddress(request.addressId());
-        Project project = findProject(request.projectId());
-        Restaurant saved = restaurantRepository.save(
-                RestaurantDtoMapper.toDomain(request, project, address));
-        return RestaurantDtoMapper.toResponse(saved);
+    public RestaurantResponseDto createRestaurant(RestaurantRequestDto request) {
+        requireAddress(request.addressId());
+        requireProject(request.projectId());
+        Restaurant saved = restaurantRepository.save(RestaurantMapper.toDomain(request));
+        return toResponseDto(saved);
     }
 
-    public RestaurantResponse findById(UUID id) {
-        return RestaurantDtoMapper.toResponse(findRestaurant(id));
+    public RestaurantResponseDto getRestaurantById(UUID id) {
+        return toResponseDto(findRestaurant(id));
     }
 
-    public PageResponse<RestaurantResponse> findAll(int page, int size) {
-        PageResult<Restaurant> result = restaurantRepository.findAll(new PageQuery(page, size));
-        return PageResponseMapper.toResponse(result, RestaurantDtoMapper::toResponse);
+    public PageResponseDto<RestaurantResponseDto> listRestaurants(int page, int size) {
+        var result = restaurantRepository.findAll(new Repository.PageQuery(page, size));
+        return PageMapper.toResponseDto(result, this::toResponseDto);
     }
 
-    public RestaurantResponse update(UUID id, RestaurantRequest request) {
+    public RestaurantResponseDto updateRestaurant(UUID id, RestaurantRequestDto request) {
         Restaurant restaurant = findRestaurant(id);
-        Address address = findAddress(request.addressId());
-        Project project = findProject(request.projectId());
-        RestaurantDtoMapper.applyTo(restaurant, request, project, address);
-        return RestaurantDtoMapper.toResponse(restaurantRepository.save(restaurant));
+        requireAddress(request.addressId());
+        requireProject(request.projectId());
+        restaurant.update(request.name(), request.email(), request.phone(), request.cnpj(),
+                request.projectId(), request.addressId(), request.isBilled(), request.lunchPrice(),
+                request.dinnerPrice(), request.additionalValues(), request.days());
+        return toResponseDto(restaurantRepository.save(restaurant));
     }
 
-    public void delete(UUID id) {
-        if (!restaurantRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Restaurante nao encontrado com id: " + id);
-        }
-        restaurantRepository.deleteById(id);
+    public void deleteRestaurant(UUID id) {
+        restaurantRepository.delete(findRestaurant(id));
+    }
+
+    private RestaurantResponseDto toResponseDto(Restaurant restaurant) {
+        return RestaurantMapper.toResponseDto(restaurant, NO_EMPLOYEES_ASSIGNED);
     }
 
     private Restaurant findRestaurant(UUID id) {
         return restaurantRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Restaurante nao encontrado com id: " + id));
+                .orElseThrow(() -> RestaurantNotFoundException.withId(id));
     }
 
-    private Address findAddress(UUID addressId) {
-        return addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + addressId));
+    private void requireAddress(UUID addressId) {
+        if (!addressRepository.existsById(addressId)) {
+            throw AddressNotFoundException.withId(addressId);
+        }
     }
 
-    private Project findProject(UUID projectId) {
-        return projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + projectId));
+    private void requireProject(UUID projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw ProjectNotFoundException.withId(projectId);
+        }
     }
 }

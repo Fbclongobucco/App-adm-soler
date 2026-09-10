@@ -7,14 +7,19 @@ spring:
     username: sa
     password:
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     open-in-view: false
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
 
-jwt:
-  secret: dGVzdFNlY3JldEtleUZvclVuaXRUZXN0aW5nUHVycG9zZUFuZEJlTXVzdEJlMjU2Qml0cw==
-  access-token:
-    expiration: 900000
-  refresh-token:
-    expiration: 604800000
+app:
+  jwt:
+    secret: this-is-a-test-only-secret-key-long-enough-for-hmac-sha256-signing
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
+  admin:
+    name: Administrador
+    email: admin@soler.com
+    phone: "00000000000"
+    password: admin123

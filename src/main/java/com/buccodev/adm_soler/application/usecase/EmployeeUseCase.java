@@ -1,17 +1,16 @@
 package com.buccodev.adm_soler.application.usecase;
 
-import com.buccodev.adm_soler.application.dto.PageResponse;
-import com.buccodev.adm_soler.application.dto.employee.EmployeeRequest;
-import com.buccodev.adm_soler.application.dto.employee.EmployeeResponse;
-import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
-import com.buccodev.adm_soler.application.mapper.EmployeeDtoMapper;
-import com.buccodev.adm_soler.application.mapper.PageResponseMapper;
-import com.buccodev.adm_soler.core.domain.Address;
+import com.buccodev.adm_soler.application.dto.PageResponseDto;
+import com.buccodev.adm_soler.application.dto.employee.EmployeeRequestDto;
+import com.buccodev.adm_soler.application.dto.employee.EmployeeResponseDto;
+import com.buccodev.adm_soler.application.exception.AddressNotFoundException;
+import com.buccodev.adm_soler.application.exception.EmployeeNotFoundException;
+import com.buccodev.adm_soler.application.mapper.EmployeeMapper;
+import com.buccodev.adm_soler.application.mapper.PageMapper;
 import com.buccodev.adm_soler.core.domain.Employee;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.EmployeeRepository;
+import com.buccodev.adm_soler.core.repository.Repository;
 
 import java.util.UUID;
 
@@ -25,42 +24,41 @@ public class EmployeeUseCase {
         this.addressRepository = addressRepository;
     }
 
-    public EmployeeResponse create(EmployeeRequest request) {
-        Address address = findAddress(request.addressId());
-        Employee saved = employeeRepository.save(EmployeeDtoMapper.toDomain(request, address));
-        return EmployeeDtoMapper.toResponse(saved);
+    public EmployeeResponseDto createEmployee(EmployeeRequestDto request) {
+        requireAddress(request.addressId());
+        Employee saved = employeeRepository.save(EmployeeMapper.toDomain(request));
+        return EmployeeMapper.toResponseDto(saved);
     }
 
-    public EmployeeResponse findById(UUID id) {
-        return EmployeeDtoMapper.toResponse(findEmployee(id));
+    public EmployeeResponseDto getEmployeeById(UUID id) {
+        return EmployeeMapper.toResponseDto(findEmployee(id));
     }
 
-    public PageResponse<EmployeeResponse> findAll(int page, int size) {
-        PageResult<Employee> result = employeeRepository.findAll(new PageQuery(page, size));
-        return PageResponseMapper.toResponse(result, EmployeeDtoMapper::toResponse);
+    public PageResponseDto<EmployeeResponseDto> listEmployees(int page, int size) {
+        var result = employeeRepository.findAll(new Repository.PageQuery(page, size));
+        return PageMapper.toResponseDto(result, EmployeeMapper::toResponseDto);
     }
 
-    public EmployeeResponse update(UUID id, EmployeeRequest request) {
+    public EmployeeResponseDto updateEmployee(UUID id, EmployeeRequestDto request) {
         Employee employee = findEmployee(id);
-        Address address = findAddress(request.addressId());
-        EmployeeDtoMapper.applyTo(employee, request, address);
-        return EmployeeDtoMapper.toResponse(employeeRepository.save(employee));
+        requireAddress(request.addressId());
+        employee.update(request.name(), request.email(), request.phone(), request.addressId(),
+                request.role());
+        return EmployeeMapper.toResponseDto(employeeRepository.save(employee));
     }
 
-    public void delete(UUID id) {
-        if (!employeeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Funcionario nao encontrado com id: " + id);
-        }
-        employeeRepository.deleteById(id);
+    public void deleteEmployee(UUID id) {
+        employeeRepository.delete(findEmployee(id));
     }
 
     private Employee findEmployee(UUID id) {
         return employeeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Funcionario nao encontrado com id: " + id));
+                .orElseThrow(() -> EmployeeNotFoundException.withId(id));
     }
 
-    private Address findAddress(UUID addressId) {
-        return addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + addressId));
+    private void requireAddress(UUID addressId) {
+        if (!addressRepository.existsById(addressId)) {
+            throw AddressNotFoundException.withId(addressId);
+        }
     }
 }

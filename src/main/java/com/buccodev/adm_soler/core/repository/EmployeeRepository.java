@@ -1,16 +1,8 @@
 package com.buccodev.adm_soler.core.repository;
 
 import com.buccodev.adm_soler.core.domain.Employee;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
 
-import java.util.Optional;
 import java.util.UUID;
 
-public interface EmployeeRepository {
-    Employee save(Employee employee);
-    Optional<Employee> findById(UUID id);
-    PageResult<Employee> findAll(PageQuery pageQuery);
-    void deleteById(UUID id);
-    boolean existsById(UUID id);
+public interface EmployeeRepository extends Repository<Employee, UUID> {
 }

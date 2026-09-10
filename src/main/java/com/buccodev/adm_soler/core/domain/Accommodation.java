@@ -1,67 +1,78 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.DomainException;
+import com.buccodev.adm_soler.core.exception.InvalidAccommodationException;
+import com.buccodev.adm_soler.core.exception.InvalidPeriodException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Objects;
+import java.util.UUID;
 
 public class Accommodation {
 
     private final UUID id;
-    private Address address;
-    private Project project;
+    private UUID addressId;
+    private final UUID projectId;
     private Integer capacity;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private final Set<Employee> employees = new HashSet<>();
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private Accommodation(UUID id, Address address, Project project, Integer capacity,
+    private Accommodation(UUID id, UUID addressId, UUID projectId, Integer capacity,
                           LocalDateTime startDate, LocalDateTime endDate,
                           LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = Objects.requireNonNull(id, "id is required");
-        this.address = Objects.requireNonNull(address, "address is required");
-        this.project = Objects.requireNonNull(project, "project is required");
-        this.capacity = validateCapacity(capacity);
-        this.startDate = validateStartDate(startDate);
-        this.endDate = validateEndDate(endDate);
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        validate(addressId, projectId, capacity, startDate, endDate);
+        this.id = id;
+        this.addressId = addressId;
+        this.projectId = projectId;
+        this.capacity = capacity;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    public static Accommodation create(Address address, Project project, Integer capacity,
+    public static Accommodation create(UUID addressId, UUID projectId, Integer capacity,
                                        LocalDateTime startDate, LocalDateTime endDate) {
-        var now = LocalDateTime.now();
-        var accommodation = new Accommodation(UUID.randomUUID(), address, project, capacity,
+        LocalDateTime now = LocalDateTime.now();
+        return new Accommodation(UUID.randomUUID(), addressId, projectId, capacity,
                 startDate, endDate, now, now);
-        accommodation.validateDateRange(startDate, endDate);
-        return accommodation;
     }
 
-    public static Accommodation restore(UUID id, Address address, Project project, Integer capacity,
+    public static Accommodation restore(UUID id, UUID addressId, UUID projectId, Integer capacity,
                                         LocalDateTime startDate, LocalDateTime endDate,
-                                        Set<Employee> employees, LocalDateTime createdAt,
-                                        LocalDateTime updatedAt) {
-        var accommodation = new Accommodation(id, address, project, capacity, startDate, endDate,
+                                        LocalDateTime createdAt, LocalDateTime updatedAt) {
+        return new Accommodation(id, addressId, projectId, capacity, startDate, endDate,
                 createdAt, updatedAt);
-        if (employees != null) {
-            accommodation.employees.addAll(employees);
-        }
-        accommodation.validateDateRange(startDate, endDate);
-        return accommodation;
+    }
+
+    /**
+     * O projeto e fixo pela vida da acomodacao: mover uma acomodacao de obra
+     * invalidaria a alocacao de quem ja esta hospedado nela.
+     */
+    public void update(UUID addressId, Integer capacity, LocalDateTime startDate, LocalDateTime endDate) {
+        validate(addressId, projectId, capacity, startDate, endDate);
+        this.addressId = addressId;
+        this.capacity = capacity;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean fits(int employeeCount) {
+        return capacity == null || employeeCount <= capacity;
     }
 
     public UUID getId() {
         return id;
     }
 
-    public Address getAddress() {
-        return address;
+    public UUID getAddressId() {
+        return addressId;
     }
 
-    public Project getProject() {
-        return project;
+    public UUID getProjectId() {
+        return projectId;
     }
 
     public Integer getCapacity() {
@@ -76,10 +87,6 @@ public class Accommodation {
         return endDate;
     }
 
-    public Set<Employee> getEmployees() {
-        return Collections.unmodifiableSet(employees);
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -88,81 +95,27 @@ public class Accommodation {
         return updatedAt;
     }
 
-    public void setAddress(Address address) {
-        this.address = Objects.requireNonNull(address, "address is required");
-    }
-
-    public void setProject(Project project) {
-        this.project = Objects.requireNonNull(project, "project is required");
-    }
-
-    public void setCapacity(Integer capacity) {
-        this.capacity = validateCapacity(capacity);
-        if (employees.size() > this.capacity) {
-            throw new DomainException("capacity cannot be less than current number of employees");
+    private static void validate(UUID addressId, UUID projectId, Integer capacity,
+                                 LocalDateTime startDate, LocalDateTime endDate) {
+        if (addressId == null) {
+            throw InvalidAccommodationException.nullAddressId();
         }
-    }
-
-    public void setStartDate(LocalDateTime startDate) {
-        this.startDate = validateStartDate(startDate);
-        validateDateRange(this.startDate, this.endDate);
-    }
-
-    public void setEndDate(LocalDateTime endDate) {
-        this.endDate = validateEndDate(endDate);
-        validateDateRange(this.startDate, this.endDate);
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void addEmployee(Employee employee) {
-        Objects.requireNonNull(employee, "employee is required");
-        if (capacity != null && employees.size() >= capacity) {
-            throw new DomainException("accommodation capacity exceeded: " + capacity);
+        if (projectId == null) {
+            throw InvalidAccommodationException.nullProjectId();
         }
-        this.employees.add(employee);
-    }
-
-    public void addAllEmployees(Collection<Employee> employees) {
-        Objects.requireNonNull(employees, "employees is required");
-        if (capacity != null && this.employees.size() + employees.size() > capacity) {
-            throw new DomainException("accommodation capacity exceeded: " + capacity);
-        }
-        this.employees.addAll(employees);
-    }
-
-    public void removeEmployee(Employee employee) {
-        this.employees.remove(employee);
-    }
-
-    private Integer validateCapacity(Integer capacity) {
         if (capacity != null && capacity <= 0) {
-            throw new DomainException("capacity must be greater than zero");
+            throw InvalidAccommodationException.nonPositiveCapacity(capacity);
         }
-        return capacity;
-    }
-
-    private LocalDateTime validateStartDate(LocalDateTime startDate) {
-        Objects.requireNonNull(startDate, "startDate is required");
-        return startDate;
-    }
-
-    private LocalDateTime validateEndDate(LocalDateTime endDate) {
-        Objects.requireNonNull(endDate, "endDate is required");
-        return endDate;
-    }
-
-    private void validateDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw new DomainException("startDate must be before endDate");
+        if (startDate == null || endDate == null) {
+            throw InvalidPeriodException.nullBounds();
+        }
+        if (startDate.isAfter(endDate)) {
+            throw InvalidPeriodException.startAfterEnd(startDate, endDate);
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Accommodation that = (Accommodation) o;
         return Objects.equals(id, that.id);
@@ -170,6 +123,6 @@ public class Accommodation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hashCode(id);
     }
 }

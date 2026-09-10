@@ -3,18 +3,22 @@ spring:
   application:
     name: adm-soler
   profiles:
-    active: h2
+    active: ${SPRING_PROFILES_ACTIVE:h2}
   jpa:
     open-in-view: false
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
 
-# Server
 server:
   port: 8080
 
-# JWT Configuration
-jwt:
-  secret: ${JWT_SECRET:dGhpc0lzQVZlcnlTZWN1cmVLZXlGb1JXU0hvdWxkQmVNdXN0QmVMb25nRW5vdWdoMjU2Qml0cw==}
-  access-token:
-    expiration: 900000    # 15 minutes
-  refresh-token:
-    expiration: 604800000  # 7 days
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:this-is-a-dev-only-secret-key-change-it-before-going-to-production}
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
+  admin:
+    name: Administrador
+    email: ${APP_ADMIN_EMAIL:admin@soler.com}
+    phone: "00000000000"
+    password: ${APP_ADMIN_PASSWORD:admin123}

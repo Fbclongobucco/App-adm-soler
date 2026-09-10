@@ -1,14 +1,15 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.DomainException;
+import com.buccodev.adm_soler.core.exception.InvalidClientException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class Client {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\+?\\d{10,11}$");
     private static final Pattern CNPJ_PATTERN = Pattern.compile("^\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}$");
 
@@ -17,36 +18,41 @@ public class Client {
     private String email;
     private String phone;
     private String cnpj;
-    private Address address;
-    private final Set<Project> projects = new HashSet<>();
+    private UUID addressId;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     private Client(UUID id, String name, String email, String phone, String cnpj,
-                   Address address, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = Objects.requireNonNull(id, "id is required");
-        this.name = validateName(name);
-        this.email = validateEmail(email);
-        this.phone = validatePhone(phone);
-        this.cnpj = validateCnpj(cnpj);
-        this.address = Objects.requireNonNull(address, "address is required");
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+                   UUID addressId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        validate(name, email, phone, cnpj, addressId);
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.cnpj = cnpj;
+        this.addressId = addressId;
+        this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    public static Client create(String name, String email, String phone, String cnpj, Address address) {
-        var now = LocalDateTime.now();
-        return new Client(UUID.randomUUID(), name, email, phone, cnpj, address, now, now);
+    public static Client create(String name, String email, String phone, String cnpj, UUID addressId) {
+        LocalDateTime now = LocalDateTime.now();
+        return new Client(UUID.randomUUID(), name, email, phone, cnpj, addressId, now, now);
     }
 
     public static Client restore(UUID id, String name, String email, String phone, String cnpj,
-                                 Address address, Set<Project> projects, LocalDateTime createdAt,
-                                 LocalDateTime updatedAt) {
-        var client = new Client(id, name, email, phone, cnpj, address, createdAt, updatedAt);
-        if (projects != null) {
-            client.projects.addAll(projects);
-        }
-        return client;
+                                 UUID addressId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        return new Client(id, name, email, phone, cnpj, addressId, createdAt, updatedAt);
+    }
+
+    public void update(String name, String email, String phone, String cnpj, UUID addressId) {
+        validate(name, email, phone, cnpj, addressId);
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.cnpj = cnpj;
+        this.addressId = addressId;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public UUID getId() {
@@ -69,12 +75,8 @@ public class Client {
         return cnpj;
     }
 
-    public Address getAddress() {
-        return address;
-    }
-
-    public Set<Project> getProjects() {
-        return Collections.unmodifiableSet(projects);
+    public UUID getAddressId() {
+        return addressId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -85,76 +87,26 @@ public class Client {
         return updatedAt;
     }
 
-    public void setName(String name) {
-        this.name = validateName(name);
-    }
-
-    public void setEmail(String email) {
-        this.email = validateEmail(email);
-    }
-
-    public void setPhone(String phone) {
-        this.phone = validatePhone(phone);
-    }
-
-    public void setCnpj(String cnpj) {
-        this.cnpj = validateCnpj(cnpj);
-    }
-
-    public void setAddress(Address address) {
-        this.address = Objects.requireNonNull(address, "address is required");
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void addProject(Project project) {
-        Objects.requireNonNull(project, "project is required");
-        this.projects.add(project);
-    }
-
-    public void addAllProjects(Collection<Project> projects) {
-        Objects.requireNonNull(projects, "projects is required");
-        this.projects.addAll(projects);
-    }
-
-    public void removeProject(Project project) {
-        this.projects.remove(project);
-    }
-
-    private String validateName(String name) {
-        Objects.requireNonNull(name, "name is required");
-        if (name.isBlank()) {
-            throw new DomainException("name cannot be blank");
+    private static void validate(String name, String email, String phone, String cnpj, UUID addressId) {
+        if (name == null || name.isBlank()) {
+            throw InvalidClientException.blankName();
         }
-        return name;
-    }
-
-    private String validateEmail(String email) {
         if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new DomainException("invalid email format");
+            throw InvalidClientException.invalidEmail(email);
         }
-        return email;
-    }
-
-    private String validatePhone(String phone) {
         if (phone != null && !PHONE_PATTERN.matcher(phone).matches()) {
-            throw new DomainException("invalid phone format");
+            throw InvalidClientException.invalidPhone(phone);
         }
-        return phone;
-    }
-
-    private String validateCnpj(String cnpj) {
         if (cnpj != null && !CNPJ_PATTERN.matcher(cnpj).matches()) {
-            throw new DomainException("invalid CNPJ format");
+            throw InvalidClientException.invalidCnpj(cnpj);
         }
-        return cnpj;
+        if (addressId == null) {
+            throw InvalidClientException.nullAddressId();
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Client client = (Client) o;
         return Objects.equals(id, client.id);
@@ -162,6 +114,6 @@ public class Client {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hashCode(id);
     }
 }

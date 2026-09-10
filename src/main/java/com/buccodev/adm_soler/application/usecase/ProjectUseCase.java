@@ -1,17 +1,16 @@
 package com.buccodev.adm_soler.application.usecase;
 
-import com.buccodev.adm_soler.application.dto.PageResponse;
-import com.buccodev.adm_soler.application.dto.project.ProjectRequest;
-import com.buccodev.adm_soler.application.dto.project.ProjectResponse;
-import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
-import com.buccodev.adm_soler.application.mapper.PageResponseMapper;
-import com.buccodev.adm_soler.application.mapper.ProjectDtoMapper;
-import com.buccodev.adm_soler.core.domain.Client;
+import com.buccodev.adm_soler.application.dto.PageResponseDto;
+import com.buccodev.adm_soler.application.dto.project.ProjectRequestDto;
+import com.buccodev.adm_soler.application.dto.project.ProjectResponseDto;
+import com.buccodev.adm_soler.application.exception.ClientNotFoundException;
+import com.buccodev.adm_soler.application.exception.ProjectNotFoundException;
+import com.buccodev.adm_soler.application.mapper.PageMapper;
+import com.buccodev.adm_soler.application.mapper.ProjectMapper;
 import com.buccodev.adm_soler.core.domain.Project;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.core.repository.ClientRepository;
 import com.buccodev.adm_soler.core.repository.ProjectRepository;
+import com.buccodev.adm_soler.core.repository.Repository;
 
 import java.util.UUID;
 
@@ -25,42 +24,41 @@ public class ProjectUseCase {
         this.clientRepository = clientRepository;
     }
 
-    public ProjectResponse create(ProjectRequest request) {
-        Client client = findClient(request.clientId());
-        Project saved = projectRepository.save(ProjectDtoMapper.toDomain(request, client));
-        return ProjectDtoMapper.toResponse(saved);
+    public ProjectResponseDto createProject(ProjectRequestDto request) {
+        requireClient(request.clientId());
+        Project saved = projectRepository.save(ProjectMapper.toDomain(request));
+        return ProjectMapper.toResponseDto(saved);
     }
 
-    public ProjectResponse findById(UUID id) {
-        return ProjectDtoMapper.toResponse(findProject(id));
+    public ProjectResponseDto getProjectById(UUID id) {
+        return ProjectMapper.toResponseDto(findProject(id));
     }
 
-    public PageResponse<ProjectResponse> findAll(int page, int size) {
-        PageResult<Project> result = projectRepository.findAll(new PageQuery(page, size));
-        return PageResponseMapper.toResponse(result, ProjectDtoMapper::toResponse);
+    public PageResponseDto<ProjectResponseDto> listProjects(int page, int size) {
+        var result = projectRepository.findAll(new Repository.PageQuery(page, size));
+        return PageMapper.toResponseDto(result, ProjectMapper::toResponseDto);
     }
 
-    public ProjectResponse update(UUID id, ProjectRequest request) {
+    public ProjectResponseDto updateProject(UUID id, ProjectRequestDto request) {
         Project project = findProject(id);
-        Client client = findClient(request.clientId());
-        ProjectDtoMapper.applyTo(project, request, client);
-        return ProjectDtoMapper.toResponse(projectRepository.save(project));
+        requireClient(request.clientId());
+        project.update(request.os(), request.serviceProvided(), request.clientId(),
+                request.startDate(), request.endDate());
+        return ProjectMapper.toResponseDto(projectRepository.save(project));
     }
 
-    public void delete(UUID id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Projeto nao encontrado com id: " + id);
-        }
-        projectRepository.deleteById(id);
+    public void deleteProject(UUID id) {
+        projectRepository.delete(findProject(id));
     }
 
     private Project findProject(UUID id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto nao encontrado com id: " + id));
+                .orElseThrow(() -> ProjectNotFoundException.withId(id));
     }
 
-    private Client findClient(UUID clientId) {
-        return clientRepository.findById(clientId)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente nao encontrado com id: " + clientId));
+    private void requireClient(UUID clientId) {
+        if (!clientRepository.existsById(clientId)) {
+            throw ClientNotFoundException.withId(clientId);
+        }
     }
 }

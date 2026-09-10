@@ -1,6 +1,6 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.DomainException;
+import com.buccodev.adm_soler.core.exception.InvalidEquipmentException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -16,21 +16,29 @@ public class Equipment {
 
     private Equipment(UUID id, String name, String description, LocalDateTime createdAt,
                       LocalDateTime updatedAt) {
-        this.id = Objects.requireNonNull(id, "id is required");
-        this.name = validateName(name);
+        validate(name);
+        this.id = id;
+        this.name = name;
         this.description = description;
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     public static Equipment create(String name, String description) {
-        var now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
         return new Equipment(UUID.randomUUID(), name, description, now, now);
     }
 
     public static Equipment restore(UUID id, String name, String description,
                                     LocalDateTime createdAt, LocalDateTime updatedAt) {
         return new Equipment(id, name, description, createdAt, updatedAt);
+    }
+
+    public void update(String name, String description) {
+        validate(name);
+        this.name = name;
+        this.description = description;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public UUID getId() {
@@ -53,29 +61,14 @@ public class Equipment {
         return updatedAt;
     }
 
-    public void setName(String name) {
-        this.name = validateName(name);
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    private String validateName(String name) {
-        Objects.requireNonNull(name, "name is required");
-        if (name.isBlank()) {
-            throw new DomainException("name cannot be blank");
+    private static void validate(String name) {
+        if (name == null || name.isBlank()) {
+            throw InvalidEquipmentException.blankName();
         }
-        return name;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Equipment equipment = (Equipment) o;
         return Objects.equals(id, equipment.id);
@@ -83,6 +76,6 @@ public class Equipment {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hashCode(id);
     }
 }

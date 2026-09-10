@@ -1,15 +1,14 @@
 package com.buccodev.adm_soler.application.usecase;
 
-import com.buccodev.adm_soler.application.dto.PageResponse;
-import com.buccodev.adm_soler.application.dto.equipment.EquipmentRequest;
-import com.buccodev.adm_soler.application.dto.equipment.EquipmentResponse;
-import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
-import com.buccodev.adm_soler.application.mapper.EquipmentDtoMapper;
-import com.buccodev.adm_soler.application.mapper.PageResponseMapper;
+import com.buccodev.adm_soler.application.dto.PageResponseDto;
+import com.buccodev.adm_soler.application.dto.equipment.EquipmentRequestDto;
+import com.buccodev.adm_soler.application.dto.equipment.EquipmentResponseDto;
+import com.buccodev.adm_soler.application.exception.EquipmentNotFoundException;
+import com.buccodev.adm_soler.application.mapper.EquipmentMapper;
+import com.buccodev.adm_soler.application.mapper.PageMapper;
 import com.buccodev.adm_soler.core.domain.Equipment;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.core.repository.EquipmentRepository;
+import com.buccodev.adm_soler.core.repository.Repository;
 
 import java.util.UUID;
 
@@ -21,35 +20,32 @@ public class EquipmentUseCase {
         this.equipmentRepository = equipmentRepository;
     }
 
-    public EquipmentResponse create(EquipmentRequest request) {
-        Equipment saved = equipmentRepository.save(EquipmentDtoMapper.toDomain(request));
-        return EquipmentDtoMapper.toResponse(saved);
+    public EquipmentResponseDto createEquipment(EquipmentRequestDto request) {
+        Equipment saved = equipmentRepository.save(EquipmentMapper.toDomain(request));
+        return EquipmentMapper.toResponseDto(saved);
     }
 
-    public EquipmentResponse findById(UUID id) {
-        return EquipmentDtoMapper.toResponse(findEquipment(id));
+    public EquipmentResponseDto getEquipmentById(UUID id) {
+        return EquipmentMapper.toResponseDto(findEquipment(id));
     }
 
-    public PageResponse<EquipmentResponse> findAll(int page, int size) {
-        PageResult<Equipment> result = equipmentRepository.findAll(new PageQuery(page, size));
-        return PageResponseMapper.toResponse(result, EquipmentDtoMapper::toResponse);
+    public PageResponseDto<EquipmentResponseDto> listEquipments(int page, int size) {
+        var result = equipmentRepository.findAll(new Repository.PageQuery(page, size));
+        return PageMapper.toResponseDto(result, EquipmentMapper::toResponseDto);
     }
 
-    public EquipmentResponse update(UUID id, EquipmentRequest request) {
+    public EquipmentResponseDto updateEquipment(UUID id, EquipmentRequestDto request) {
         Equipment equipment = findEquipment(id);
-        EquipmentDtoMapper.applyTo(equipment, request);
-        return EquipmentDtoMapper.toResponse(equipmentRepository.save(equipment));
+        equipment.update(request.name(), request.description());
+        return EquipmentMapper.toResponseDto(equipmentRepository.save(equipment));
     }
 
-    public void delete(UUID id) {
-        if (!equipmentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Equipamento nao encontrado com id: " + id);
-        }
-        equipmentRepository.deleteById(id);
+    public void deleteEquipment(UUID id) {
+        equipmentRepository.delete(findEquipment(id));
     }
 
     private Equipment findEquipment(UUID id) {
         return equipmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipamento nao encontrado com id: " + id));
+                .orElseThrow(() -> EquipmentNotFoundException.withId(id));
     }
 }

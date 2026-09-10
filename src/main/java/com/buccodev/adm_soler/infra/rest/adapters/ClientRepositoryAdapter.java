@@ -2,15 +2,12 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Client;
 import com.buccodev.adm_soler.core.repository.ClientRepository;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
-import com.buccodev.adm_soler.infra.rest.entities.ClientJpa;
-import com.buccodev.adm_soler.infra.rest.jpa_repositories.ClientJpaRepository;
-import com.buccodev.adm_soler.infra.rest.mappers.ClientMapper;
+import com.buccodev.adm_soler.core.repository.Repository;
+import com.buccodev.adm_soler.infra.rest.entities.ClientEntity;
+import com.buccodev.adm_soler.infra.rest.jpa_repository.ClientJpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,48 +21,58 @@ public class ClientRepositoryAdapter implements ClientRepository {
         this.jpaRepository = jpaRepository;
     }
 
-    @Transactional
     @Override
     public Client save(Client client) {
-        ClientJpa jpa = ClientMapper.toJpa(client);
-        if (jpaRepository.existsById(jpa.getId())) {
-            jpa.markAsExisting();
-        }
-        ClientJpa saved = jpaRepository.save(jpa);
-        saved.markAsExisting();
-        return ClientMapper.toDomain(saved);
+        return toDomain(jpaRepository.save(toEntity(client)));
     }
 
-    @Transactional(readOnly = true)
     @Override
     public Optional<Client> findById(UUID id) {
-        return jpaRepository.findByIdWithRelations(id).map(jpa -> {
-            jpa.markAsExisting();
-            return ClientMapper.toDomain(jpa);
-        });
+        return jpaRepository.findById(id).map(ClientRepositoryAdapter::toDomain);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public PageResult<Client> findAll(PageQuery pageQuery) {
-        Page<ClientJpa> page = jpaRepository.findAllWithRelations(PageRequest.of(pageQuery.page(), pageQuery.size()));
-        return new PageResult<>(
-                page.getContent().stream().map(ClientMapper::toDomain).toList(),
+    public Repository.PageResult<Client> findAll(Repository.PageQuery pageQuery) {
+        Page<ClientEntity> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new Repository.PageResult<>(
+                page.getContent().stream().map(ClientRepositoryAdapter::toDomain).toList(),
                 page.getNumber(),
                 page.getSize(),
                 page.getTotalElements(),
-                page.getTotalPages()
-        );
+                page.getTotalPages());
     }
 
-    @Transactional
     @Override
-    public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+    public void delete(Client client) {
+        jpaRepository.deleteById(client.getId());
     }
 
     @Override
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);
+    }
+
+    static ClientEntity toEntity(Client client) {
+        return new ClientEntity(
+                client.getId(),
+                client.getName(),
+                client.getEmail(),
+                client.getPhone(),
+                client.getCnpj(),
+                client.getAddressId(),
+                client.getCreatedAt(),
+                client.getUpdatedAt());
+    }
+
+    static Client toDomain(ClientEntity entity) {
+        return Client.restore(
+                entity.getId(),
+                entity.getName(),
+                entity.getEmail(),
+                entity.getPhone(),
+                entity.getCnpj(),
+                entity.getAddressId(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

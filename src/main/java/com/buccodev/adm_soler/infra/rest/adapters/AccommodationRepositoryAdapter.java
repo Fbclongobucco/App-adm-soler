@@ -2,15 +2,12 @@ package com.buccodev.adm_soler.infra.rest.adapters;
 
 import com.buccodev.adm_soler.core.domain.Accommodation;
 import com.buccodev.adm_soler.core.repository.AccommodationRepository;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
-import com.buccodev.adm_soler.infra.rest.entities.AccommodationJpa;
-import com.buccodev.adm_soler.infra.rest.jpa_repositories.AccommodationJpaRepository;
-import com.buccodev.adm_soler.infra.rest.mappers.AccommodationMapper;
+import com.buccodev.adm_soler.core.repository.Repository;
+import com.buccodev.adm_soler.infra.rest.entities.AccommodationEntity;
+import com.buccodev.adm_soler.infra.rest.jpa_repository.AccommodationJpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,48 +21,58 @@ public class AccommodationRepositoryAdapter implements AccommodationRepository {
         this.jpaRepository = jpaRepository;
     }
 
-    @Transactional
     @Override
     public Accommodation save(Accommodation accommodation) {
-        AccommodationJpa jpa = AccommodationMapper.toJpa(accommodation);
-        if (jpaRepository.existsById(jpa.getId())) {
-            jpa.markAsExisting();
-        }
-        AccommodationJpa saved = jpaRepository.save(jpa);
-        saved.markAsExisting();
-        return AccommodationMapper.toDomain(saved);
+        return toDomain(jpaRepository.save(toEntity(accommodation)));
     }
 
-    @Transactional(readOnly = true)
     @Override
     public Optional<Accommodation> findById(UUID id) {
-        return jpaRepository.findByIdWithRelations(id).map(jpa -> {
-            jpa.markAsExisting();
-            return AccommodationMapper.toDomain(jpa);
-        });
+        return jpaRepository.findById(id).map(AccommodationRepositoryAdapter::toDomain);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public PageResult<Accommodation> findAll(PageQuery pageQuery) {
-        Page<AccommodationJpa> page = jpaRepository.findAllWithRelations(PageRequest.of(pageQuery.page(), pageQuery.size()));
-        return new PageResult<>(
-                page.getContent().stream().map(AccommodationMapper::toDomain).toList(),
+    public Repository.PageResult<Accommodation> findAll(Repository.PageQuery pageQuery) {
+        Page<AccommodationEntity> page = jpaRepository.findAll(PageRequest.of(pageQuery.page(), pageQuery.size()));
+        return new Repository.PageResult<>(
+                page.getContent().stream().map(AccommodationRepositoryAdapter::toDomain).toList(),
                 page.getNumber(),
                 page.getSize(),
                 page.getTotalElements(),
-                page.getTotalPages()
-        );
+                page.getTotalPages());
     }
 
-    @Transactional
     @Override
-    public void deleteById(UUID id) {
-        jpaRepository.deleteById(id);
+    public void delete(Accommodation accommodation) {
+        jpaRepository.deleteById(accommodation.getId());
     }
 
     @Override
     public boolean existsById(UUID id) {
         return jpaRepository.existsById(id);
+    }
+
+    static AccommodationEntity toEntity(Accommodation accommodation) {
+        return new AccommodationEntity(
+                accommodation.getId(),
+                accommodation.getAddressId(),
+                accommodation.getProjectId(),
+                accommodation.getCapacity(),
+                accommodation.getStartDate(),
+                accommodation.getEndDate(),
+                accommodation.getCreatedAt(),
+                accommodation.getUpdatedAt());
+    }
+
+    static Accommodation toDomain(AccommodationEntity entity) {
+        return Accommodation.restore(
+                entity.getId(),
+                entity.getAddressId(),
+                entity.getProjectId(),
+                entity.getCapacity(),
+                entity.getStartDate(),
+                entity.getEndDate(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

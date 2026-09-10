@@ -1,15 +1,17 @@
 package com.buccodev.adm_soler.core.domain;
 
-import com.buccodev.adm_soler.core.exception.DomainException;
+import com.buccodev.adm_soler.core.exception.InvalidRestaurantException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class Restaurant {
 
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^\\+?\\d{10,11}$");
     private static final Pattern CNPJ_PATTERN = Pattern.compile("^\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}$");
 
@@ -18,67 +20,103 @@ public class Restaurant {
     private String email;
     private String phone;
     private String cnpj;
-    private Project project;
-    private final Set<Employee> employees = new HashSet<>();
+    private UUID projectId;
+    private UUID addressId;
     private Boolean isBilled;
     private BigDecimal lunchPrice;
     private BigDecimal dinnerPrice;
-    private BigDecimal total;
     private BigDecimal additionalValues;
-    private BigDecimal valuePerEmployee;
     private Integer days;
-    private Address address;
+    private BigDecimal total;
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     private Restaurant(UUID id, String name, String email, String phone, String cnpj,
-                      Project project, Boolean isBilled, BigDecimal lunchPrice,
-                      BigDecimal dinnerPrice, BigDecimal total, BigDecimal additionalValues,
-                      BigDecimal valuePerEmployee, Integer days, Address address,
-                      LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = Objects.requireNonNull(id, "id is required");
-        this.name = validateName(name);
-        this.email = validateEmail(email);
-        this.phone = validatePhone(phone);
-        this.cnpj = validateCnpj(cnpj);
-        this.project = project;
+                       UUID projectId, UUID addressId, Boolean isBilled, BigDecimal lunchPrice,
+                       BigDecimal dinnerPrice, BigDecimal additionalValues, Integer days,
+                       LocalDateTime createdAt, LocalDateTime updatedAt) {
+        validate(name, email, phone, cnpj, lunchPrice, dinnerPrice, additionalValues, days);
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.cnpj = cnpj;
+        this.projectId = projectId;
+        this.addressId = addressId;
         this.isBilled = isBilled;
-        this.lunchPrice = validatePrice(lunchPrice, "lunchPrice");
-        this.dinnerPrice = validatePrice(dinnerPrice, "dinnerPrice");
-        this.total = total;
-        this.additionalValues = validatePrice(additionalValues, "additionalValues");
-        this.valuePerEmployee = valuePerEmployee;
-        this.days = validateDays(days);
-        this.address = address;
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+        this.lunchPrice = lunchPrice;
+        this.dinnerPrice = dinnerPrice;
+        this.additionalValues = additionalValues;
+        this.days = days;
+        this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.total = calculateTotal();
     }
 
-    public static Restaurant create(String name, String email, String phone, Project project,
-                                    Boolean isBilled, Integer days, Address address) {
-        var now = LocalDateTime.now();
-        var cnpjPlaceholder = "00.000.000/0000-00";
-        var restaurant = new Restaurant(UUID.randomUUID(), name, email, phone, cnpjPlaceholder, project,
-                isBilled, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, days, address, now, now);
-        restaurant.calculateTotal();
-        restaurant.calculateValuePerEmployee();
-        return restaurant;
+    public static Restaurant create(String name, String email, String phone, String cnpj,
+                                    UUID projectId, UUID addressId, Boolean isBilled,
+                                    BigDecimal lunchPrice, BigDecimal dinnerPrice,
+                                    BigDecimal additionalValues, Integer days) {
+        LocalDateTime now = LocalDateTime.now();
+        return new Restaurant(UUID.randomUUID(), name, email, phone, cnpj, projectId, addressId,
+                isBilled, lunchPrice, dinnerPrice, additionalValues, days, now, now);
     }
 
     public static Restaurant restore(UUID id, String name, String email, String phone, String cnpj,
-                                     Project project, Set<Employee> employees, Boolean isBilled,
-                                     BigDecimal lunchPrice, BigDecimal dinnerPrice, BigDecimal total,
-                                     BigDecimal additionalValues, BigDecimal valuePerEmployee, Integer days,
-                                     Address address, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        var restaurant = new Restaurant(id, name, email, phone, cnpj, project, isBilled, lunchPrice,
-                dinnerPrice, total, additionalValues, valuePerEmployee, days, address, createdAt, updatedAt);
-        if (employees != null) {
-            restaurant.employees.addAll(employees);
+                                     UUID projectId, UUID addressId, Boolean isBilled,
+                                     BigDecimal lunchPrice, BigDecimal dinnerPrice,
+                                     BigDecimal additionalValues, Integer days,
+                                     LocalDateTime createdAt, LocalDateTime updatedAt) {
+        return new Restaurant(id, name, email, phone, cnpj, projectId, addressId, isBilled,
+                lunchPrice, dinnerPrice, additionalValues, days, createdAt, updatedAt);
+    }
+
+    public void update(String name, String email, String phone, String cnpj, UUID projectId,
+                       UUID addressId, Boolean isBilled, BigDecimal lunchPrice,
+                       BigDecimal dinnerPrice, BigDecimal additionalValues, Integer days) {
+        validate(name, email, phone, cnpj, lunchPrice, dinnerPrice, additionalValues, days);
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.cnpj = cnpj;
+        this.projectId = projectId;
+        this.addressId = addressId;
+        this.isBilled = isBilled;
+        this.lunchPrice = lunchPrice;
+        this.dinnerPrice = dinnerPrice;
+        this.additionalValues = additionalValues;
+        this.days = days;
+        this.total = calculateTotal();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+
+    public BigDecimal valuePerEmployee(int employeeCount) {
+        if (employeeCount < 0) {
+            throw InvalidRestaurantException.negativeEmployeeCount(employeeCount);
         }
-        restaurant.calculateTotal();
-        restaurant.calculateValuePerEmployee();
-        return restaurant;
+        if (employeeCount == 0) {
+            return BigDecimal.ZERO;
+        }
+        return total.divide(BigDecimal.valueOf(employeeCount), 2, RoundingMode.HALF_UP);
+    }
+
+    public boolean isBilled() {
+        return Boolean.TRUE.equals(isBilled);
+    }
+
+    private BigDecimal calculateTotal() {
+        BigDecimal computed = BigDecimal.ZERO;
+        if (lunchPrice != null && days != null) {
+            computed = computed.add(lunchPrice.multiply(BigDecimal.valueOf(days)));
+        }
+        if (dinnerPrice != null && days != null) {
+            computed = computed.add(dinnerPrice.multiply(BigDecimal.valueOf(days)));
+        }
+        if (additionalValues != null) {
+            computed = computed.add(additionalValues);
+        }
+        return computed;
     }
 
     public UUID getId() {
@@ -101,12 +139,12 @@ public class Restaurant {
         return cnpj;
     }
 
-    public Project getProject() {
-        return project;
+    public UUID getProjectId() {
+        return projectId;
     }
 
-    public Set<Employee> getEmployees() {
-        return Collections.unmodifiableSet(employees);
+    public UUID getAddressId() {
+        return addressId;
     }
 
     public Boolean getIsBilled() {
@@ -121,24 +159,16 @@ public class Restaurant {
         return dinnerPrice;
     }
 
-    public BigDecimal getTotal() {
-        return total;
-    }
-
     public BigDecimal getAdditionalValues() {
         return additionalValues;
-    }
-
-    public BigDecimal getValuePerEmployee() {
-        return valuePerEmployee;
     }
 
     public Integer getDays() {
         return days;
     }
 
-    public Address getAddress() {
-        return address;
+    public BigDecimal getTotal() {
+        return total;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -149,151 +179,37 @@ public class Restaurant {
         return updatedAt;
     }
 
-    public void setName(String name) {
-        this.name = validateName(name);
-    }
-
-    public void setEmail(String email) {
-        this.email = validateEmail(email);
-    }
-
-    public void setPhone(String phone) {
-        this.phone = validatePhone(phone);
-    }
-
-    public void setCnpj(String cnpj) {
-        this.cnpj = validateCnpj(cnpj);
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
-    public void setIsBilled(Boolean isBilled) {
-        this.isBilled = isBilled;
-    }
-
-    public void setLunchPrice(BigDecimal lunchPrice) {
-        this.lunchPrice = validatePrice(lunchPrice, "lunchPrice");
-        calculateTotal();
-        calculateValuePerEmployee();
-    }
-
-    public void setDinnerPrice(BigDecimal dinnerPrice) {
-        this.dinnerPrice = validatePrice(dinnerPrice, "dinnerPrice");
-        calculateTotal();
-        calculateValuePerEmployee();
-    }
-
-    public void setAdditionalValues(BigDecimal additionalValues) {
-        this.additionalValues = validatePrice(additionalValues, "additionalValues");
-        calculateTotal();
-        calculateValuePerEmployee();
-    }
-
-    public void setDays(Integer days) {
-        this.days = validateDays(days);
-        calculateTotal();
-        calculateValuePerEmployee();
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void addEmployee(Employee employee) {
-        Objects.requireNonNull(employee, "employee is required");
-        this.employees.add(employee);
-        calculateValuePerEmployee();
-    }
-
-    public void addAllEmployees(Collection<Employee> employees) {
-        Objects.requireNonNull(employees, "employees is required");
-        this.employees.addAll(employees);
-        calculateValuePerEmployee();
-    }
-
-    public void removeEmployee(Employee employee) {
-        this.employees.remove(employee);
-        calculateValuePerEmployee();
-    }
-
-    public void calculateTotal() {
-        var total = BigDecimal.ZERO;
-        if (lunchPrice != null && days != null) {
-            total = total.add(lunchPrice.multiply(BigDecimal.valueOf(days)));
+    private static void validate(String name, String email, String phone, String cnpj,
+                                 BigDecimal lunchPrice, BigDecimal dinnerPrice,
+                                 BigDecimal additionalValues, Integer days) {
+        if (name == null || name.isBlank()) {
+            throw InvalidRestaurantException.blankName();
         }
-        if (dinnerPrice != null && days != null) {
-            total = total.add(dinnerPrice.multiply(BigDecimal.valueOf(days)));
-        }
-        if (additionalValues != null) {
-            total = total.add(additionalValues);
-        }
-        this.total = total;
-    }
-
-    public void calculateValuePerEmployee() {
-        if (total != null && !employees.isEmpty()) {
-            this.valuePerEmployee = total.divide(BigDecimal.valueOf(employees.size()), 2, java.math.RoundingMode.HALF_UP);
-        } else {
-            this.valuePerEmployee = BigDecimal.ZERO;
-        }
-    }
-
-    public boolean isBilled() {
-        return Boolean.TRUE.equals(isBilled);
-    }
-
-    private String validateName(String name) {
-        Objects.requireNonNull(name, "name is required");
-        if (name.isBlank()) {
-            throw new DomainException("name cannot be blank");
-        }
-        return name;
-    }
-
-    private String validateEmail(String email) {
         if (email != null && !EMAIL_PATTERN.matcher(email).matches()) {
-            throw new DomainException("invalid email format");
+            throw InvalidRestaurantException.invalidEmail(email);
         }
-        return email;
-    }
-
-    private String validatePhone(String phone) {
         if (phone != null && !PHONE_PATTERN.matcher(phone).matches()) {
-            throw new DomainException("invalid phone format");
+            throw InvalidRestaurantException.invalidPhone(phone);
         }
-        return phone;
-    }
-
-    private String validateCnpj(String cnpj) {
         if (cnpj != null && !CNPJ_PATTERN.matcher(cnpj).matches()) {
-            throw new DomainException("invalid CNPJ format");
+            throw InvalidRestaurantException.invalidCnpj(cnpj);
         }
-        return cnpj;
-    }
-
-    private BigDecimal validatePrice(BigDecimal price, String fieldName) {
-        if (price != null && price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new DomainException(fieldName + " cannot be negative");
-        }
-        return price;
-    }
-
-    private Integer validateDays(Integer days) {
+        requireNonNegative(lunchPrice, "lunch price");
+        requireNonNegative(dinnerPrice, "dinner price");
+        requireNonNegative(additionalValues, "additional values");
         if (days != null && days <= 0) {
-            throw new DomainException("days must be greater than zero");
+            throw InvalidRestaurantException.nonPositiveDays(days);
         }
-        return days;
+    }
+
+    private static void requireNonNegative(BigDecimal value, String fieldName) {
+        if (value != null && value.compareTo(BigDecimal.ZERO) < 0) {
+            throw InvalidRestaurantException.negativePrice(fieldName, value);
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Restaurant that = (Restaurant) o;
         return Objects.equals(id, that.id);
@@ -301,7 +217,6 @@ public class Restaurant {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hashCode(id);
     }
-
 }

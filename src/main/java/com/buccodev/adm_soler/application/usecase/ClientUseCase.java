@@ -1,17 +1,16 @@
 package com.buccodev.adm_soler.application.usecase;
 
-import com.buccodev.adm_soler.application.dto.PageResponse;
-import com.buccodev.adm_soler.application.dto.client.ClientRequest;
-import com.buccodev.adm_soler.application.dto.client.ClientResponse;
-import com.buccodev.adm_soler.application.exception.ResourceNotFoundException;
-import com.buccodev.adm_soler.application.mapper.ClientDtoMapper;
-import com.buccodev.adm_soler.application.mapper.PageResponseMapper;
-import com.buccodev.adm_soler.core.domain.Address;
+import com.buccodev.adm_soler.application.dto.PageResponseDto;
+import com.buccodev.adm_soler.application.dto.client.ClientRequestDto;
+import com.buccodev.adm_soler.application.dto.client.ClientResponseDto;
+import com.buccodev.adm_soler.application.exception.AddressNotFoundException;
+import com.buccodev.adm_soler.application.exception.ClientNotFoundException;
+import com.buccodev.adm_soler.application.mapper.ClientMapper;
+import com.buccodev.adm_soler.application.mapper.PageMapper;
 import com.buccodev.adm_soler.core.domain.Client;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
 import com.buccodev.adm_soler.core.repository.AddressRepository;
 import com.buccodev.adm_soler.core.repository.ClientRepository;
+import com.buccodev.adm_soler.core.repository.Repository;
 
 import java.util.UUID;
 
@@ -25,42 +24,41 @@ public class ClientUseCase {
         this.addressRepository = addressRepository;
     }
 
-    public ClientResponse create(ClientRequest request) {
-        Address address = findAddress(request.addressId());
-        Client saved = clientRepository.save(ClientDtoMapper.toDomain(request, address));
-        return ClientDtoMapper.toResponse(saved);
+    public ClientResponseDto createClient(ClientRequestDto request) {
+        requireAddress(request.addressId());
+        Client saved = clientRepository.save(ClientMapper.toDomain(request));
+        return ClientMapper.toResponseDto(saved);
     }
 
-    public ClientResponse findById(UUID id) {
-        return ClientDtoMapper.toResponse(findClient(id));
+    public ClientResponseDto getClientById(UUID id) {
+        return ClientMapper.toResponseDto(findClient(id));
     }
 
-    public PageResponse<ClientResponse> findAll(int page, int size) {
-        PageResult<Client> result = clientRepository.findAll(new PageQuery(page, size));
-        return PageResponseMapper.toResponse(result, ClientDtoMapper::toResponse);
+    public PageResponseDto<ClientResponseDto> listClients(int page, int size) {
+        var result = clientRepository.findAll(new Repository.PageQuery(page, size));
+        return PageMapper.toResponseDto(result, ClientMapper::toResponseDto);
     }
 
-    public ClientResponse update(UUID id, ClientRequest request) {
+    public ClientResponseDto updateClient(UUID id, ClientRequestDto request) {
         Client client = findClient(id);
-        Address address = findAddress(request.addressId());
-        ClientDtoMapper.applyTo(client, request, address);
-        return ClientDtoMapper.toResponse(clientRepository.save(client));
+        requireAddress(request.addressId());
+        client.update(request.name(), request.email(), request.phone(), request.cnpj(),
+                request.addressId());
+        return ClientMapper.toResponseDto(clientRepository.save(client));
     }
 
-    public void delete(UUID id) {
-        if (!clientRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Cliente nao encontrado com id: " + id);
-        }
-        clientRepository.deleteById(id);
+    public void deleteClient(UUID id) {
+        clientRepository.delete(findClient(id));
     }
 
     private Client findClient(UUID id) {
         return clientRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente nao encontrado com id: " + id));
+                .orElseThrow(() -> ClientNotFoundException.withId(id));
     }
 
-    private Address findAddress(UUID addressId) {
-        return addressRepository.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("Endereco nao encontrado com id: " + addressId));
+    private void requireAddress(UUID addressId) {
+        if (!addressRepository.existsById(addressId)) {
+            throw AddressNotFoundException.withId(addressId);
+        }
     }
 }

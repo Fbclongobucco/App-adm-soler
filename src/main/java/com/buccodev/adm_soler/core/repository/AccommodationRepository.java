@@ -1,16 +1,8 @@
 package com.buccodev.adm_soler.core.repository;
 
 import com.buccodev.adm_soler.core.domain.Accommodation;
-import com.buccodev.adm_soler.core.pagination.PageQuery;
-import com.buccodev.adm_soler.core.pagination.PageResult;
 
-import java.util.Optional;
 import java.util.UUID;
 
-public interface AccommodationRepository {
-    Accommodation save(Accommodation accommodation);
-    Optional<Accommodation> findById(UUID id);
-    PageResult<Accommodation> findAll(PageQuery pageQuery);
-    void deleteById(UUID id);
-    boolean existsById(UUID id);
+public interface AccommodationRepository extends Repository<Accommodation, UUID> {
 }
