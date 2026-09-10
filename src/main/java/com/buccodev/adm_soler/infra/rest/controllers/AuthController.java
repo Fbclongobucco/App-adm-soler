@@ -1,10 +1,10 @@
 package com.buccodev.adm_soler.infra.rest.controllers;
 
+import com.buccodev.adm_soler.application.dto.auth.AuthRequest;
 import com.buccodev.adm_soler.application.dto.auth.AuthResponse;
+import com.buccodev.adm_soler.application.dto.auth.RefreshTokenRequest;
+import com.buccodev.adm_soler.application.dto.auth.RegisterRequest;
 import com.buccodev.adm_soler.application.usecase.AuthUseCase;
-import com.buccodev.adm_soler.infra.rest.requests.AuthHttpRequest;
-import com.buccodev.adm_soler.infra.rest.requests.RefreshTokenHttpRequest;
-import com.buccodev.adm_soler.infra.rest.requests.RegisterHttpRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,17 +21,17 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthHttpRequest request) {
-        return ResponseEntity.ok(authUseCase.login(request.toApplicationRequest()));
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
+        return ResponseEntity.ok(authUseCase.login(request));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenHttpRequest request) {
-        return ResponseEntity.ok(authUseCase.refreshToken(request.toApplicationRequest()));
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authUseCase.refreshToken(request));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterHttpRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authUseCase.register(request.toApplicationRequest()));
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authUseCase.register(request));
     }
 }
